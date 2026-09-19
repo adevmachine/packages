@@ -1,0 +1,33 @@
+packages/mise/defaults/main.yml
+  s_cab674f14f5e3f::t_dcbe7fcc50f628 1-2
+packages/mise/package.yml
+  s_cab674f14f5e3f::t_3d6f15f0406327 1-16
+packages/mise/vars/Debian.yml
+  s_41dcf6a2797f23::t_c363380f1878dc 1-4
+packages/mise/tasks/main.yml
+  s_cab674f14f5e3f::t_d24368a182d319 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e3b539a067a7e51708a682e7cd8c272970daaceb",
+  "prompts": {},
+  "sessions": {
+    "s_41dcf6a2797f23": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "72a5f86f-d3d6-48bc-8d51-50b92c1322dc",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    },
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
