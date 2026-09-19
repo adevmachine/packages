@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# resume — picks and opens one of this user's tmux sessions (a sort of
+# "/resume"). Inside tmux: switch-client. Outside: attach. The picker is fzf when
+# it exists, otherwise a numbered menu. It has an option to create a new
+# session.
+set -uo pipefail
+
+goto() {
+  local t="$1"
+  if [ -n "${TMUX:-}" ]; then
+    tmux switch-client -t "$t"
+  else
+    exec tmux attach-session -t "$t"
+  fi
+}
+
+new_session() {
+  local name
+  printf 'session name (enter = main): '
+  read -r name
+  exec tmux new-session -s "${name:-main}"
+}
+
+rows="$(tmux list-sessions -F '#{session_name}	#{session_windows} win	#{?session_attached,(attached),}' 2>/dev/null || true)"
+if [ -z "$rows" ]; then
+  echo "No tmux session open. Creating 'main'…"
+  exec tmux new-session -s main
+fi
+
+NEW_LABEL='+ new session'
+
+if command -v fzf >/dev/null 2>&1; then
+  pick="$(printf '%s\n%s\n' "$rows" "$NEW_LABEL" \
+    | fzf --prompt='resume > ' --height=40% --reverse)"
+  [ -z "$pick" ] && { echo cancelled; exit 1; }
+  [ "$pick" = "$NEW_LABEL" ] && new_session
+  goto "$(printf '%s' "$pick" | cut -f1)"
+else
+  echo "tmux sessions:"
+  names=()
+  while IFS=$'\t' read -r n rest; do
+    names+=("$n")
+    printf '  %2d) %-20s %s\n' "${#names[@]}" "$n" "$rest"
+  done <<< "$rows"
+  printf '  %2d) %s\n' "$(( ${#names[@]} + 1 ))" "$NEW_LABEL"
+  printf 'choose (number): '
+  read -r idx
+  case "$idx" in
+    ''|*[!0-9]*) echo "invalid"; exit 1 ;;
+  esac
+  [ "$idx" -eq "$(( ${#names[@]} + 1 ))" ] && new_session
+  sel="${names[$(( idx - 1 ))]:-}"
+  [ -z "$sel" ] && { echo "invalid"; exit 1; }
+  goto "$sel"
+fi

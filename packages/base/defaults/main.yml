@@ -1,0 +1,12 @@
+---
+# Empty on purpose. Setting a timezone somebody never asked for is rude, so the
+# task only runs once a value is given.
+devmachine_timezone: ""
+
+# Same for the hostname: renaming an existing server without being asked is the
+# same kind of rudeness. The CLI passes the machine's configured name.
+devmachine_hostname: ""
+
+# Upgrading every package on a machine is the owner's decision, not a side
+# effect of installing base tools.
+devmachine_base_upgrade: false

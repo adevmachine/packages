@@ -1,0 +1,7 @@
+format: 1
+name: base
+scope: machine
+summary: The base tools a development machine needs, plus a shared tmux config and a session picker.
+
+requires:
+  cli: ">= 0.2.0"

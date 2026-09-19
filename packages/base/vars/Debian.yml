@@ -1,0 +1,37 @@
+---
+devmachine_package_cache_command: apt-get update
+devmachine_package_upgrade_command: apt-get --yes dist-upgrade
+
+devmachine_base_packages:
+  - curl
+  - build-essential
+  - ca-certificates
+  - gnupg
+  - unattended-upgrades
+  - zsh
+  - tmux
+  # Resilient SSH for a wobbly link and for roaming. The firewall package can
+  # scope its UDP range to one interface.
+  - mosh
+  # Audio and video processing, available to every workspace on the machine.
+  - ffmpeg
+  # Dependencies for compiling languages from source through mise, ruby-build
+  # and the rest. Without them `mise install` fails on a missing header
+  # (zlib.h, for example). This is ruby-build's standard list for Debian and
+  # Ubuntu.
+  - autoconf
+  - patch
+  - zlib1g-dev
+  - libssl-dev
+  - libyaml-dev
+  - libreadline-dev
+  - libncurses-dev
+  - libffi-dev
+  - libgdbm-dev
+  - libgmp-dev
+  - uuid-dev
+  - libxml2-dev
+  - libxslt-dev
+  - libcurl4-openssl-dev
+  - libjemalloc-dev
+  - libvips

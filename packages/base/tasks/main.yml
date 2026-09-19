@@ -1,0 +1,70 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Refresh the package cache
+  ansible.builtin.command: "{{ devmachine_package_cache_command }}"
+  changed_when: false
+
+- name: Upgrade the installed packages
+  ansible.builtin.command: "{{ devmachine_package_upgrade_command }}"
+  when: devmachine_base_upgrade | bool
+  register: devmachine_base_upgrade_result
+  changed_when: devmachine_base_upgrade_result.rc == 0
+
+- name: Install the base packages
+  ansible.builtin.package:
+    name: "{{ devmachine_base_packages }}"
+    state: present
+
+- name: Read the current timezone
+  ansible.builtin.command: timedatectl show --property=Timezone --value
+  register: devmachine_current_timezone
+  when: devmachine_timezone | length > 0
+  changed_when: false
+
+- name: Set the timezone
+  ansible.builtin.command: "timedatectl set-timezone {{ devmachine_timezone }}"
+  when:
+    - devmachine_timezone | length > 0
+    - devmachine_current_timezone.stdout != devmachine_timezone
+  changed_when: true
+
+- name: Set the hostname
+  ansible.builtin.hostname:
+    name: "{{ devmachine_hostname }}"
+  when: devmachine_hostname | length > 0
+
+- name: Configure tmux (extended keys plus the OSC 52 clipboard)
+  ansible.builtin.copy:
+    dest: /etc/tmux.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      set -s extended-keys on
+      set -as terminal-features ',xterm*:extkeys'
+      # Copying from tmux's copy-mode reaches the local clipboard through OSC 52
+      # (some terminals need "applications may access the clipboard" turned on).
+      # allow-passthrough lets a program inside tmux send OSC 52 out to the
+      # terminal.
+      set -g set-clipboard on
+      set -g allow-passthrough on
+      # This lives here, and not only in each user's ~/.tmux.conf: a tmux server
+      # that came up before that file existed keeps the mouse off forever, and
+      # then the mouse wheel turns into an up or down arrow inside any
+      # full-screen program.
+      set -g mouse on
+      # Page Up enters the scrollback, as in a normal terminal. `-e` leaves by
+      # itself on reaching the end again. A full-screen program (vim, less) gets
+      # the key as always — `alternate_on` is what decides.
+      bind -n PPage if-shell -F '#{alternate_on}' 'send-keys PPage' 'copy-mode -eu'
+      bind -n NPage if-shell -F '#{alternate_on}' 'send-keys NPage' 'send-keys NPage'
+
+- name: Install the `resume` command (a tmux session picker)
+  ansible.builtin.copy:
+    src: resume
+    dest: /usr/local/bin/resume
+    owner: root
+    group: root
+    mode: "0755"
