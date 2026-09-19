@@ -1,0 +1,7 @@
+format: 1
+name: fail2ban
+scope: machine
+summary: fail2ban, with a jail for sshd.
+
+requires:
+  cli: ">= 0.2.0"

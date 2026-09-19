@@ -1,0 +1,31 @@
+---
+- name: Load the service name for this family
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_os_family }}.yml"
+      skip: true
+
+# 00- so it wins by alphabetical order over the other drop-ins, for example the
+# 50-cloud-init.conf that a cloud image ships with PasswordAuthentication yes.
+# sshd uses the first value it finds for each directive — the Include of
+# sshd_config.d sits at the top of the main sshd_config, so whatever comes first
+# in the alphabetical glob is in charge.
+- name: Turn off password authentication and root login by password
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/00-devmachine-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin prohibit-password
+      # SSH forwards TERM and nothing else. A program on the machine that wants
+      # to know which terminal it is talking to needs the rest listed here, and
+      # SendEnv on the client.
+      AcceptEnv TERM_PROGRAM TERM_PROGRAM_VERSION COLORTERM
+  notify: Reload sshd
+
+- name: Check the sshd config before it is reloaded
+  ansible.builtin.command: sshd -t
+  changed_when: false

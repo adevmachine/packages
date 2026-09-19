@@ -1,0 +1,8 @@
+[sshd]
+enabled = true
+# Anything on this list can fail to log in forever. Keep it to addresses you
+# own: a tool of your own that retries an SSH alias is enough to get the machine
+# you are sitting at banned.
+ignoreip = {{ devmachine_fail2ban_ignoreip }}
+maxretry = {{ devmachine_fail2ban_maxretry }}
+bantime = {{ devmachine_fail2ban_bantime }}

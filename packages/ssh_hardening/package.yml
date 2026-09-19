@@ -1,0 +1,9 @@
+format: 1
+name: ssh_hardening
+scope: machine
+summary: >-
+  Turns off password authentication for good. `setup` does this once, at first
+  contact, before Ansible exists; this keeps it that way on every converge.
+
+requires:
+  cli: ">= 0.2.0"

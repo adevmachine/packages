@@ -1,0 +1,3 @@
+---
+# Debian calls the service `ssh` and overrides this in vars/Debian.yml.
+devmachine_sshd_service: sshd

@@ -1,0 +1,42 @@
+---
+- name: Look for the community.general collection
+  ansible.builtin.command: ansible-galaxy collection list community.general
+  register: devmachine_firewall_collection
+  changed_when: false
+  failed_when: false
+
+# Without this the run dies on "couldn't resolve module community.general.ufw",
+# which says what is missing but not how to get it.
+- name: Check the community.general collection is installed
+  ansible.builtin.assert:
+    that: devmachine_firewall_collection.rc == 0
+    fail_msg: >-
+      This package uses community.general.ufw. Install the collection with
+      `ansible-galaxy collection install community.general`.
+
+- name: Allow OpenSSH
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow HTTP and HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: ["80", "443"]
+  when: devmachine_firewall_http | bool
+
+- name: Allow mosh over one interface
+  community.general.ufw:
+    rule: allow
+    direction: in
+    interface: "{{ devmachine_firewall_mosh_interface }}"
+    proto: udp
+    port: "{{ devmachine_firewall_mosh_ports }}"
+    comment: "mosh on {{ devmachine_firewall_mosh_interface }}"
+  when: devmachine_firewall_mosh_interface | length > 0
+
+- name: Enable ufw
+  community.general.ufw:
+    state: enabled

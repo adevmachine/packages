@@ -1,0 +1,8 @@
+---
+devmachine_fail2ban_maxretry: 5
+devmachine_fail2ban_bantime: 3600
+
+# Loopback only. A wider range belongs to whoever owns the network: adding a
+# private range here exempts everyone who shares it, and a carrier-grade NAT
+# range is shared with strangers.
+devmachine_fail2ban_ignoreip: "127.0.0.1/8 ::1"

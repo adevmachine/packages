@@ -1,0 +1,10 @@
+---
+# A machine meant to host things wants 80 and 443, so this is on. A machine that
+# hosts nothing has no use for either, so it can be turned off.
+devmachine_firewall_http: true
+
+# Empty on purpose. mosh's UDP range is only opened once somebody names the
+# interface it may arrive on, which keeps the range off the public edge and
+# keeps this package from knowing any vendor's name.
+devmachine_firewall_mosh_interface: ""
+devmachine_firewall_mosh_ports: "60000:61000"

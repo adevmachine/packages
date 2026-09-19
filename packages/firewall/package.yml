@@ -1,0 +1,9 @@
+format: 1
+name: firewall
+scope: machine
+summary: >-
+  ufw, with SSH open and HTTP optional. It needs the community.general
+  collection on the machine.
+
+requires:
+  cli: ">= 0.2.0"
