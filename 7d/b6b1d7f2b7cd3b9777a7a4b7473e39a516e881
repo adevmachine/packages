@@ -1,0 +1,27 @@
+packages/zsh/files/tmux.conf
+  s_cab674f14f5e3f::t_f915c1a22cabcf 1-19
+packages/zsh/tasks/main.yml
+  s_cab674f14f5e3f::t_455bbd48b6a39d 1-75
+packages/zsh/package.yml
+  s_cab674f14f5e3f::t_0cfa0b30ece40a 1-28
+packages/zsh/defaults/main.yml
+  s_cab674f14f5e3f::t_47b2c869da663e 1-5
+packages/zsh/vars/Debian.yml
+  s_cab674f14f5e3f::t_599ae9ba1d5a55 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7db6b1d7f2b7cd3b9777a7a4b7473e39a516e881",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
