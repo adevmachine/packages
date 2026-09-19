@@ -1,0 +1,26 @@
+packages/dev/defaults/main.yml
+  s_cab674f14f5e3f::t_6b56dbfe9e7e49 1-5
+packages/dev/vars/Debian.yml
+  s_cab674f14f5e3f::t_6e067de81492e7 1-20
+packages/dev/package.yml
+  s_cab674f14f5e3f::t_9f580f1fcb9f45 1-25
+packages/dev/tasks/main.yml
+  s_cab674f14f5e3f::t_ec41e04c188434 14-17,34-37,61-72
+  s_cab674f14f5e3f::t_ef00679902ca73 1-13,18-33,38-60,73-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b8890ae5e4657110730d5ab1a3c90da299706a9e",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
