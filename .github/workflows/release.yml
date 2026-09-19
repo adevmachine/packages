@@ -1,0 +1,31 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      # The flags are what make the tarball reproducible. Without them the same
+      # tree gives a different checksum on every build, and a checksum that
+      # changes for no reason is a checksum nobody trusts.
+      - name: Build the tarball
+        run: |
+          tar --sort=name --owner=0 --group=0 --numeric-owner \
+              --mtime='UTC 2020-01-01' \
+              -czf "packages-${GITHUB_REF_NAME}.tar.gz" packages
+
+      - name: Write the checksums
+        run: sha256sum "packages-${GITHUB_REF_NAME}.tar.gz" > checksums.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packages-${{ github.ref_name }}.tar.gz
+            checksums.txt

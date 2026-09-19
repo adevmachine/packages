@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install the CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo adevmachine/cli \
+            --pattern 'devmachine_*_linux_amd64.tar.gz' --output /tmp/cli.tar.gz
+          tar -xzf /tmp/cli.tar.gz -C /tmp devmachine
+          sudo install /tmp/devmachine /usr/local/bin/devmachine
+
+      # The validator is the format. This is how the repository stays inside it.
+      - name: Validate every recipe
+        run: ./scripts/validate.sh
+
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Ansible
+        run: pipx install ansible-core
+
+      # A recipe that does not parse cannot be caught by the validator, which
+      # reads package.yml and the task files as text rather than as a play.
+      - name: Check every recipe parses as a role
+        run: ./scripts/syntax-check.sh
+
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The pattern list lives outside the repository, so this passes on a
+      # runner and bites on the maintainer's machine, which is where the risk
+      # is.
+      - name: Check for real data
+        run: ./scripts/check-no-real-data.sh
