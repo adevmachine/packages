@@ -1,0 +1,5 @@
+---
+devmachine_zsh_home: "/home/{{ devmachine_workspace.user }}"
+
+devmachine_zsh_tmux_auto_attach: true
+devmachine_zsh_tmux_config: true

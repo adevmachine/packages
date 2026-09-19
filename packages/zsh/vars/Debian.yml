@@ -1,0 +1,11 @@
+---
+devmachine_zsh_packages:
+  - zsh
+  # Oh My Zsh's installer clones itself and downloads with these two.
+  - git
+  - curl
+  - tmux
+
+# Debian and Ubuntu put the real binary here; /bin/zsh is a symlink into it.
+# chsh wants a path that is listed in /etc/shells, and this is the one that is.
+devmachine_zsh_shell: /usr/bin/zsh

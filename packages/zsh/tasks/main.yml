@@ -1,0 +1,75 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install zsh and what Oh My Zsh's installer needs
+  ansible.builtin.package:
+    name: "{{ devmachine_zsh_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_zsh_home }}"
+  register: devmachine_zsh_account
+  check_mode: false
+
+- name: Make zsh the account's login shell
+  ansible.builtin.user:
+    name: "{{ devmachine_workspace.user }}"
+    shell: "{{ devmachine_zsh_shell }}"
+
+# KEEP_ZSHRC is no on purpose: the installer writes the .zshrc everything below
+# then adds to. RUNZSH is no because the installer otherwise ends by opening a
+# shell and waiting for somebody who is not there.
+- name: Install Oh My Zsh
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_zsh_home }}"
+    RUNZSH: "no"
+    KEEP_ZSHRC: "no"
+  ansible.builtin.shell:
+    cmd: >-
+      sh -c "$(curl -fsSL
+      https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    creates: "{{ devmachine_zsh_home }}/.oh-my-zsh"
+  when: not ansible_check_mode or devmachine_zsh_account.stat.exists
+
+# A connection that drops loses nothing, because the work was never in the
+# connection. The second branch is what stops a new SSH login from stealing the
+# screen of one that is already attached: it gets a session of its own instead.
+- name: Attach to tmux on an SSH login
+  ansible.builtin.blockinfile:
+    path: "{{ devmachine_zsh_home }}/.zshrc"
+    marker: "# {mark} devmachine — tmux auto-attach"
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+    block: |
+      if [ -z "$TMUX" ] && [ -n "$SSH_CONNECTION" ]; then
+        if tmux has-session -t main 2>/dev/null && [ -n "$(tmux list-clients -t main 2>/dev/null)" ]; then
+          exec tmux new-session -s "ssh-$$"
+        else
+          exec tmux new-session -A -s main
+        fi
+      fi
+  when: devmachine_zsh_tmux_auto_attach | bool
+
+# A tmux server reads its configuration when it starts and never again. A
+# server that was already running when this was written keeps the old
+# behaviour until somebody runs `tmux source-file ~/.tmux.conf`, or until every
+# session on it is gone. That is not something this package can do for you: it
+# would mean reaching into a session somebody is working in.
+- name: Configure tmux for the account
+  ansible.builtin.copy:
+    src: tmux.conf
+    dest: "{{ devmachine_zsh_home }}/.tmux.conf"
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+  when: devmachine_zsh_tmux_config | bool

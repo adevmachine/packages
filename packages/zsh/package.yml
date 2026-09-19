@@ -1,0 +1,28 @@
+format: 1
+name: zsh
+scope: workspace
+summary: >-
+  zsh as the account's login shell, Oh My Zsh, a tmux config, and a shell that
+  attaches to a tmux session when the connection is over SSH. A tmux server
+  already running keeps its old configuration until it is told to reload.
+
+needs: [workspace]
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  tmux_auto_attach:
+    summary: >-
+      Open a tmux session on every SSH login, so a dropped connection loses
+      nothing. A second connection while the first is live gets a session of
+      its own instead of a second view of the same one.
+    default: true
+  tmux_config:
+    summary: >-
+      Write the account's ~/.tmux.conf. Turn it off to keep a config of your
+      own.
+    default: true
