@@ -1,0 +1,43 @@
+packages/fail2ban/defaults/main.yml
+  s_cab674f14f5e3f::t_84f53ba7de2f98 1-8
+packages/fail2ban/handlers/main.yml
+  s_cab674f14f5e3f::t_369bf97b6b6084 1-5
+packages/fail2ban/package.yml
+  s_cab674f14f5e3f::t_9c9e3352fa2cf3 1-7
+packages/fail2ban/tasks/main.yml
+  s_cab674f14f5e3f::t_706457c65ac468 1-20
+packages/fail2ban/templates/jail.local.j2
+  s_cab674f14f5e3f::t_8da3909b29b50a 1-8
+packages/firewall/defaults/main.yml
+  s_cab674f14f5e3f::t_a5b87ca910539b 1-10
+packages/firewall/package.yml
+  s_cab674f14f5e3f::t_fc9f3c9d6e4d72 1-9
+packages/firewall/tasks/main.yml
+  s_cab674f14f5e3f::t_3571643c27554a 1-42
+packages/ssh_hardening/defaults/main.yml
+  s_cab674f14f5e3f::t_3ec8d342d98cbc 1-3
+packages/ssh_hardening/handlers/main.yml
+  s_cab674f14f5e3f::t_f9b38a30ae07b9 1-5
+packages/ssh_hardening/package.yml
+  s_cab674f14f5e3f::t_30e3d75503ae63 1-9
+packages/ssh_hardening/tasks/main.yml
+  s_cab674f14f5e3f::t_7150efecace59c 1-31
+packages/ssh_hardening/vars/Debian.yml
+  s_cab674f14f5e3f::t_43bf354e72e92a 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b5714e3adf5f97968c9e498cb7b0e6d30b12be16",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
