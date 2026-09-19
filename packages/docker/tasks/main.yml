@@ -1,0 +1,45 @@
+---
+- name: Load the repository and package names for this family
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Remove the old and conflicting docker packages
+  ansible.builtin.package:
+    name: "{{ devmachine_docker_conflicting_packages }}"
+    state: absent
+
+- name: Create the keyring directory
+  ansible.builtin.file:
+    path: "{{ devmachine_docker_keyring | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Docker's own signing key
+  ansible.builtin.get_url:
+    url: "{{ devmachine_docker_key_url }}"
+    dest: "{{ devmachine_docker_keyring }}"
+    mode: "0644"
+
+- name: Add Docker's own repository
+  ansible.builtin.copy:
+    dest: "{{ devmachine_docker_repo_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: "{{ devmachine_docker_repo_line }}\n"
+  register: devmachine_docker_repo
+
+- name: Refresh the package cache
+  ansible.builtin.command: "{{ devmachine_package_cache_command }}"
+  when: devmachine_docker_repo is changed
+  changed_when: false
+
+- name: Install Docker Engine and the Compose plugin
+  ansible.builtin.package:
+    name: "{{ devmachine_docker_packages }}"
+    state: present
+
+- name: Enable and start Docker
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started

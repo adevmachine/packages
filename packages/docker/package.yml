@@ -1,0 +1,9 @@
+format: 1
+name: docker
+scope: machine
+summary: Docker Engine and the Compose plugin, from Docker's own repository.
+
+needs: [base]
+
+requires:
+  cli: ">= 0.2.0"

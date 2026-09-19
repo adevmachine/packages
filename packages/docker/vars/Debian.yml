@@ -1,0 +1,39 @@
+---
+devmachine_package_cache_command: apt-get update
+
+devmachine_docker_keyring: /etc/apt/keyrings/docker.asc
+devmachine_docker_repo_file: /etc/apt/sources.list.d/docker.list
+
+# Docker publishes one tree per distribution, so Debian and Ubuntu do not share
+# a path. `ansible_distribution` is what tells them apart.
+devmachine_docker_repo_distro: "{{ ansible_distribution | lower }}"
+devmachine_docker_key_url: "https://download.docker.com/linux/{{ devmachine_docker_repo_distro }}/gpg"
+# Debian names architectures its own way, and it is not what uname reports:
+# x86_64 is amd64 and aarch64 is arm64. A repository line carrying the uname
+# spelling matches no packages at all, and apt says only "no candidate".
+devmachine_debian_architectures:
+  x86_64: amd64
+  aarch64: arm64
+  armv7l: armhf
+devmachine_debian_architecture: "{{ devmachine_debian_architectures.get(ansible_architecture, ansible_architecture) }}"
+
+devmachine_docker_repo_line: >-
+  deb [arch={{ devmachine_debian_architecture }}
+  signed-by={{ devmachine_docker_keyring }}]
+  https://download.docker.com/linux/{{ devmachine_docker_repo_distro }}
+  {{ ansible_distribution_release }} stable
+
+devmachine_docker_conflicting_packages:
+  - docker.io
+  - docker-doc
+  - docker-compose
+  - podman-docker
+  - containerd
+  - runc
+
+devmachine_docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
