@@ -1,0 +1,23 @@
+packages/caddy/tasks/main.yml
+  s_cab674f14f5e3f::t_878f147274aea7 60-63
+packages/docker/tasks/main.yml
+  s_cab674f14f5e3f::t_c1015ed450a272 46-49
+packages/fail2ban/tasks/main.yml
+  s_cab674f14f5e3f::t_13b32a7427a945 21-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "da335f9a8b29ed8ec4dd3bdf8211b891ca4891a4",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
