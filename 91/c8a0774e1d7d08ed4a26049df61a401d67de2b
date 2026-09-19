@@ -1,0 +1,37 @@
+packages/base/defaults/main.yml
+  s_cab674f14f5e3f::t_834da0cd20228c 4,8
+packages/base/package.yml
+  s_cab674f14f5e3f::t_37788a376e34b0 8-22
+packages/base/tasks/main.yml
+  s_cab674f14f5e3f::t_352daa7400fd00 23,27,29-30,35-36
+packages/caddy/package.yml
+  s_cab674f14f5e3f::t_22bb7402468dd8 15-21
+packages/fail2ban/package.yml
+  s_cab674f14f5e3f::t_8a2b08f0382cbc 8-20
+packages/firewall/package.yml
+  s_cab674f14f5e3f::t_14f645aecc1405 10-22
+packages/ssh_hardening/defaults/main.yml
+  s_cab674f14f5e3f::t_137c68222668da 2-12
+packages/ssh_hardening/handlers/main.yml
+  s_cab674f14f5e3f::t_ff426cdee45e52 4
+packages/ssh_hardening/package.yml
+  s_cab674f14f5e3f::t_605c5cb4b72eec 10-16
+packages/ssh_hardening/vars/Debian.yml
+  s_cab674f14f5e3f::t_7e66776d31f699 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "91c8a0774e1d7d08ed4a26049df61a401d67de2b",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
