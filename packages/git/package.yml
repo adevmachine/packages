@@ -1,0 +1,7 @@
+format: 1
+name: git
+scope: machine
+summary: Installs git.
+
+requires:
+  cli: ">= 0.2.0"
