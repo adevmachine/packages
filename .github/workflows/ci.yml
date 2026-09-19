@@ -11,14 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # The asset is named after the repository, not the binary: GoReleaser
+      # builds `cli_<version>_linux_amd64.tar.gz` out of `adevmachine/cli`.
       - name: Install the CLI
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download --repo adevmachine/cli \
-            --pattern 'devmachine_*_linux_amd64.tar.gz' --output /tmp/cli.tar.gz
+            --pattern 'cli_*_linux_amd64.tar.gz' --output /tmp/cli.tar.gz --clobber
           tar -xzf /tmp/cli.tar.gz -C /tmp devmachine
           sudo install /tmp/devmachine /usr/local/bin/devmachine
+          devmachine version
 
       # The validator is the format. This is how the repository stays inside it.
       - name: Validate every recipe
