@@ -57,3 +57,7 @@
     name: caddy
     enabled: true
     state: started
+  # A dry run on a machine that does not have the package yet cannot start a
+  # service that does not exist, so check mode would report a failure that only
+  # means "this is not installed" — which the rest of the run already said.
+  when: not ansible_check_mode
