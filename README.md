@@ -34,9 +34,12 @@ never seen.
 
 ## A pin is a tag, never a branch
 
-The CLI is pointed at a release (`packages: v1`), not at `main`. A branch would
-mean the set changes under you because somebody pushed an hour ago. Upgrading is
-meant to be a deliberate act with a diff to read.
+The CLI is pointed at a release (`packages: v0.0.1`), not at `main`. A branch
+would mean the set changes under you because somebody pushed an hour ago.
+Upgrading is meant to be a deliberate act with a diff to read.
+
+Releases are semver from `v0.0.1`. A tag is never moved: a fix ships as a new
+tag, so a checksum recorded in somebody's lock file stays true.
 
 The release is a tarball built with `tar --sort --owner=0 --group=0
 --numeric-owner --mtime`, so the same tree always gives the same checksum. The
