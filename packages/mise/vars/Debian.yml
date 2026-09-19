@@ -1,0 +1,4 @@
+---
+devmachine_mise_packages:
+  # mise's installer downloads itself with curl.
+  - curl

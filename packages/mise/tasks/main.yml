@@ -1,0 +1,41 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install what mise's installer downloads with
+  ansible.builtin.package:
+    name: "{{ devmachine_mise_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_mise_home }}"
+  register: devmachine_mise_account
+  check_mode: false
+
+- name: Install mise
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_mise_home }}"
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://mise.run | sh
+    creates: "{{ devmachine_mise_home }}/.local/bin/mise"
+  when: not ansible_check_mode or devmachine_mise_account.stat.exists
+
+# .zshenv, and not .zshrc. .zshrc is read by an interactive shell only, so
+# `ssh machine 'mise ...'` — and everything a tool runs the same way, Ansible
+# included — would not find mise at all. This was got wrong once: mise worked
+# when a person typed it and vanished for every non-interactive command.
+- name: Activate mise in ~/.zshenv
+  ansible.builtin.lineinfile:
+    path: "{{ devmachine_mise_home }}/.zshenv"
+    line: 'eval "$(~/.local/bin/mise activate zsh)"'
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
