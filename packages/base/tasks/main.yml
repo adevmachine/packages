@@ -1,6 +1,6 @@
 ---
 - name: Load the package names for this family
-  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
 
 - name: Refresh the package cache
   ansible.builtin.command: "{{ devmachine_package_cache_command }}"

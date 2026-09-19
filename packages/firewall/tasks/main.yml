@@ -1,4 +1,9 @@
 ---
+# This checks the machine, not the operator's computer, and that is right:
+# provisioning runs `ansible-playbook -c local` on the machine, so the machine
+# is where a collection has to resolve. Running this role over SSH from
+# somewhere else would check the wrong host — that mode is not how the CLI
+# applies anything.
 - name: Look for the community.general collection
   ansible.builtin.command: ansible-galaxy collection list community.general
   register: devmachine_firewall_collection
@@ -9,6 +14,7 @@
 # which says what is missing but not how to get it.
 - name: Check the community.general collection is installed
   ansible.builtin.assert:
+    quiet: true
     that: devmachine_firewall_collection.rc == 0
     fail_msg: >-
       This package uses community.general.ufw. Install the collection with
