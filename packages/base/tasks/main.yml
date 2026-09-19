@@ -20,20 +20,20 @@
 - name: Read the current timezone
   ansible.builtin.command: timedatectl show --property=Timezone --value
   register: devmachine_current_timezone
-  when: devmachine_timezone | length > 0
+  when: devmachine_base_timezone | length > 0
   changed_when: false
 
 - name: Set the timezone
-  ansible.builtin.command: "timedatectl set-timezone {{ devmachine_timezone }}"
+  ansible.builtin.command: "timedatectl set-timezone {{ devmachine_base_timezone }}"
   when:
-    - devmachine_timezone | length > 0
-    - devmachine_current_timezone.stdout != devmachine_timezone
+    - devmachine_base_timezone | length > 0
+    - devmachine_current_timezone.stdout != devmachine_base_timezone
   changed_when: true
 
 - name: Set the hostname
   ansible.builtin.hostname:
-    name: "{{ devmachine_hostname }}"
-  when: devmachine_hostname | length > 0
+    name: "{{ devmachine_base_hostname }}"
+  when: devmachine_base_hostname | length > 0
 
 - name: Configure tmux (extended keys plus the OSC 52 clipboard)
   ansible.builtin.copy:

@@ -7,3 +7,10 @@ summary: >-
 
 requires:
   cli: ">= 0.2.0"
+
+variables:
+  service:
+    summary: >-
+      What systemd calls sshd. Empty means the name this distribution family
+      uses, which is `ssh` on Debian and Ubuntu and `sshd` elsewhere.
+    default: ""

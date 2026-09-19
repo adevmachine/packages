@@ -5,3 +5,16 @@ summary: fail2ban, with a jail for sshd.
 
 requires:
   cli: ">= 0.2.0"
+
+variables:
+  maxretry:
+    summary: How many failures from one address before it is banned.
+    default: 5
+  bantime:
+    summary: How long a ban lasts, in seconds.
+    default: 3600
+  ignoreip:
+    summary: >-
+      The addresses that are never banned, space separated. Loopback only by
+      default: a wider range exempts everyone who shares it.
+    default: "127.0.0.1/8 ::1"
