@@ -1,0 +1,185 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_workspace_home }}"
+  register: devmachine_workspace_account
+  check_mode: false
+
+# Once per run, not once per workspace: every workspace package installs
+# something, and a cache refresh each time would cost more than it buys.
+- name: Refresh the package cache
+  ansible.builtin.command: "{{ devmachine_package_cache_command }}"
+  changed_when: false
+  when: devmachine_workspace_cache_refreshed is not defined
+
+- name: Remember the cache has been refreshed in this run
+  ansible.builtin.set_fact:
+    devmachine_workspace_cache_refreshed: true
+
+- name: Install what an account needs before anybody logs into it
+  ansible.builtin.package:
+    name: "{{ devmachine_workspace_packages }}"
+    state: present
+
+- name: Create the account
+  ansible.builtin.user:
+    name: "{{ devmachine_workspace.user }}"
+    groups: "{{ devmachine_workspace_groups | default(omit, true) }}"
+    append: true
+    # Left out unless somebody asks for one. Setting a shell here would fight
+    # the package that installs one: each run would change it back, and both
+    # tasks would report a change forever.
+    shell: "{{ devmachine_workspace_shell | default(omit, true) }}"
+    create_home: true
+
+# This is the whole isolation model: one workspace cannot read another's home.
+# It is also why delivering a credential into a home is safe enough — nothing
+# else on the machine can open it.
+- name: Keep the home readable by its owner only
+  ansible.builtin.file:
+    path: "{{ devmachine_workspace_home }}"
+    state: directory
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0750"
+
+- name: Create ~/.ssh
+  ansible.builtin.file:
+    path: "{{ devmachine_workspace_home }}/.ssh"
+    state: directory
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0700"
+
+- name: Look for the keys the administrative account is reached by
+  ansible.builtin.stat:
+    path: "{{ devmachine_workspace_admin_home }}/.ssh/authorized_keys"
+  register: devmachine_workspace_admin_keys_file
+
+- name: Read them
+  ansible.builtin.slurp:
+    src: "{{ devmachine_workspace_admin_home }}/.ssh/authorized_keys"
+  register: devmachine_workspace_admin_keys
+  when: devmachine_workspace_admin_keys_file.stat.exists
+
+# `exclusive: false`, and it is not an oversight. Taking a key out of a list
+# does not revoke it: an apply from a stale copy of the configuration would
+# otherwise lock the operator out of every account at once. Revoking is a
+# separate and deliberate act.
+- name: Authorise those keys on this account
+  ansible.posix.authorized_key:
+    user: "{{ devmachine_workspace.user }}"
+    key: "{{ devmachine_workspace_key }}"
+    # The path is spelled out because a dry run on a machine that has no such
+    # account yet cannot look one up, and would fail saying so. ~/.ssh was made
+    # above, so the module has no directory to manage.
+    path: "{{ devmachine_workspace_home }}/.ssh/authorized_keys"
+    manage_dir: false
+    exclusive: false
+    state: present
+  loop: >-
+    {{ (devmachine_workspace_admin_keys.content | default('') | b64decode).splitlines()
+       | map('trim') | reject('equalto', '') | reject('match', '#') | list }}
+  loop_control:
+    # Never `item`. The generated playbook runs this role in a loop of its own,
+    # and `devmachine_workspace` is that loop's `item` — so an inner loop named
+    # the same way silently rebinds the workspace this whole role is about.
+    loop_var: devmachine_workspace_key
+    label: "{{ devmachine_workspace_key.split(' ') | last }}"
+
+# An account with a key of its own, rather than a copy of somebody else's. The
+# public half is what goes on a forge as this workspace's key, and what its
+# commits are signed with.
+- name: Give the account an SSH key of its own
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  ansible.builtin.command:
+    cmd: >-
+      ssh-keygen -t ed25519 -N "" -C {{ devmachine_workspace.name | quote }}
+      -f {{ devmachine_workspace_home }}/.ssh/id_ed25519
+    creates: "{{ devmachine_workspace_home }}/.ssh/id_ed25519"
+  when:
+    - devmachine_workspace_generate_key | bool
+    - not ansible_check_mode or devmachine_workspace_account.stat.exists
+
+- name: Trust the host key of each forge this workspace talks to
+  ansible.builtin.command: "ssh-keyscan -t ed25519 {{ devmachine_workspace_forge | quote }}"
+  register: devmachine_workspace_host_keys
+  loop: "{{ devmachine_workspace_known_hosts }}"
+  loop_control:
+    loop_var: devmachine_workspace_forge
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Write them into the account's known_hosts
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  ansible.builtin.known_hosts:
+    path: "{{ devmachine_workspace_home }}/.ssh/known_hosts"
+    name: "{{ devmachine_workspace_scan.devmachine_workspace_forge }}"
+    key: "{{ devmachine_workspace_scan.stdout }}"
+    state: present
+  loop: "{{ devmachine_workspace_host_keys.results | default([]) }}"
+  loop_control:
+    loop_var: devmachine_workspace_scan
+    label: "{{ devmachine_workspace_scan.devmachine_workspace_forge }}"
+  when:
+    - devmachine_workspace_scan.stdout | default('') | length > 0
+    - not ansible_check_mode or devmachine_workspace_account.stat.exists
+
+- name: Set the git identity
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_workspace_home }}"
+  community.general.git_config:
+    name: "{{ devmachine_workspace_setting.name }}"
+    value: "{{ devmachine_workspace_setting.value }}"
+    scope: global
+  loop:
+    - {name: user.name, value: "{{ devmachine_workspace_git_name }}"}
+    - {name: user.email, value: "{{ devmachine_workspace_git_email }}"}
+  loop_control:
+    loop_var: devmachine_workspace_setting
+    label: "{{ devmachine_workspace_setting.name }}"
+  when:
+    - devmachine_workspace_setting.value | length > 0
+    - not ansible_check_mode or devmachine_workspace_account.stat.exists
+
+- name: Sign this workspace's commits with its own key
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_workspace_home }}"
+  community.general.git_config:
+    name: "{{ devmachine_workspace_setting.name }}"
+    value: "{{ devmachine_workspace_setting.value }}"
+    scope: global
+  loop:
+    - {name: gpg.format, value: "ssh"}
+    - {name: user.signingkey, value: "{{ devmachine_workspace_home }}/.ssh/id_ed25519.pub"}
+    - {name: commit.gpgsign, value: "true"}
+    - {name: rebase.gpgSign, value: "true"}
+  loop_control:
+    loop_var: devmachine_workspace_setting
+    label: "{{ devmachine_workspace_setting.name }}"
+  when:
+    - devmachine_workspace_sign_commits | bool
+    - devmachine_workspace_generate_key | bool
+    - not ansible_check_mode or devmachine_workspace_account.stat.exists
+
+- name: Create ~/dev
+  ansible.builtin.file:
+    path: "{{ devmachine_workspace_home }}/dev"
+    state: directory
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0755"

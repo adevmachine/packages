@@ -1,0 +1,27 @@
+---
+# Debian and Ubuntu put a home under /home. Reading it back from the machine
+# would be more exact and less predictable: on a run that has not created the
+# account yet there is nothing to read, and a dry run has to say something.
+devmachine_workspace_home: "/home/{{ devmachine_workspace.user }}"
+
+# Every workspace is reached by whatever reaches the administrative account.
+# There is no second list of keys to keep in step, and no key of the operator's
+# own in this repository.
+devmachine_workspace_admin_home: /root
+
+# The docker group is effectively root: a container that mounts / escalates.
+# Nobody joins it unless the operator asks.
+devmachine_workspace_groups: []
+
+# Empty means the one useradd would pick. The package that installs a shell
+# is the package that sets it.
+devmachine_workspace_shell: ""
+
+devmachine_workspace_git_name: ""
+devmachine_workspace_git_email: ""
+devmachine_workspace_sign_commits: true
+
+devmachine_workspace_generate_key: true
+
+devmachine_workspace_known_hosts:
+  - github.com
