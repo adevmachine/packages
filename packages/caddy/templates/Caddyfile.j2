@@ -1,0 +1,10 @@
+# Managed by the devmachine caddy package. Do not edit it: every site belongs in
+# a file of its own under /etc/caddy/sites.d, which is what this package
+# declares as its extension point.
+{% if devmachine_caddy_email | length > 0 %}
+{
+	email {{ devmachine_caddy_email }}
+}
+
+{% endif %}
+import /etc/caddy/sites.d/*.caddy

@@ -1,0 +1,59 @@
+---
+- name: Load the repository names for this family
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Create the keyring directory
+  ansible.builtin.file:
+    path: "{{ devmachine_caddy_keyring | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Caddy's own signing key
+  ansible.builtin.get_url:
+    url: "{{ devmachine_caddy_key_url }}"
+    dest: "{{ devmachine_caddy_keyring }}"
+    mode: "0644"
+
+- name: Add Caddy's own repository
+  ansible.builtin.copy:
+    dest: "{{ devmachine_caddy_repo_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: "{{ devmachine_caddy_repo_line }}\n"
+  register: devmachine_caddy_repo
+
+- name: Refresh the package cache
+  ansible.builtin.command: "{{ devmachine_package_cache_command }}"
+  when: devmachine_caddy_repo is changed
+  changed_when: false
+
+- name: Install Caddy
+  ansible.builtin.package:
+    name: caddy
+    state: present
+
+# An empty sites.d is not an error. Caddy only warns when an import glob matches
+# nothing, so a machine with no site yet still starts.
+- name: Create the directory other packages drop their sites into
+  ansible.builtin.file:
+    path: /etc/caddy/sites.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write the Caddyfile
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: /etc/caddy/Caddyfile
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload caddy
+
+- name: Enable and start Caddy
+  ansible.builtin.systemd:
+    name: caddy
+    enabled: true
+    state: started

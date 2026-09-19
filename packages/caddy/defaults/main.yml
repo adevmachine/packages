@@ -1,0 +1,4 @@
+---
+# The address Let's Encrypt writes to about an expiring certificate. Left empty,
+# Caddy falls back to its own behaviour, which is an anonymous account.
+devmachine_caddy_email: ""

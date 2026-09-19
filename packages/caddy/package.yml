@@ -1,0 +1,14 @@
+format: 1
+name: caddy
+scope: machine
+summary: >-
+  A reverse proxy that gets its own certificates. It serves nothing by itself:
+  every site is a file another package drops into /etc/caddy/sites.d.
+
+needs: [firewall]
+
+provides:
+  sites.d: /etc/caddy/sites.d
+
+requires:
+  cli: ">= 0.2.0"

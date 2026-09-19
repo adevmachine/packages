@@ -1,0 +1,9 @@
+---
+devmachine_package_cache_command: apt-get update
+
+devmachine_caddy_keyring: /etc/apt/keyrings/caddy-archive-keyring.asc
+devmachine_caddy_key_url: https://dl.cloudsmith.io/public/caddy/stable/gpg.key
+devmachine_caddy_repo_file: /etc/apt/sources.list.d/caddy.list
+devmachine_caddy_repo_line: >-
+  deb [signed-by={{ devmachine_caddy_keyring }}]
+  https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main
