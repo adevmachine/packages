@@ -1,0 +1,92 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install what bun's installer unpacks with
+  ansible.builtin.package:
+    name: "{{ devmachine_dev_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_dev_home }}"
+  register: devmachine_dev_account
+  check_mode: false
+
+# gh comes from its own release rather than from the distribution: most
+# distributions do not carry it, and the ones that do are a long way behind.
+# It lands in the account's own ~/.local/bin, so two workspaces can sit on
+# different versions without arguing.
+- name: Install the GitHub CLI
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_dev_home }}"
+  ansible.builtin.shell:
+    cmd: |
+      set -eu
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+      curl -fsSL {{ devmachine_dev_gh_url | quote }} -o "$tmp/gh.tar.gz"
+      tar xzf "$tmp/gh.tar.gz" -C "$tmp"
+      mkdir -p "$HOME/.local/bin"
+      install -m 0755 "$(find "$tmp" -type f -name gh | head -1)" "$HOME/.local/bin/gh"
+    creates: "{{ devmachine_dev_home }}/.local/bin/gh"
+  when: not ansible_check_mode or devmachine_dev_account.stat.exists
+
+# bun through its own installer and not through mise, so it lands at an
+# absolute and stable path. Anything that is not an interactive shell — a
+# systemd unit, a timer, a daemon — can call ~/.bun/bin/bun without a manager
+# having been activated first.
+- name: Install bun
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_dev_home }}"
+    BUN_INSTALL: "{{ devmachine_dev_home }}/.bun"
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://bun.sh/install | bash
+    creates: "{{ devmachine_dev_home }}/.bun/bin/bun"
+  when: not ansible_check_mode or devmachine_dev_account.stat.exists
+
+# .zshenv is read by every zsh, interactive or not, which is the only way a
+# non-interactive command gets the same PATH a person sees.
+- name: Put the account's own tools on the PATH
+  ansible.builtin.lineinfile:
+    path: "{{ devmachine_dev_home }}/.zshenv"
+    line: "{{ devmachine_dev_path_line }}"
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+  loop:
+    - 'export PATH="$HOME/.local/bin:$PATH"'
+    - 'export PATH="$HOME/.bun/bin:$PATH"'
+  loop_control:
+    # Never `item`: the generated playbook already uses it for the workspace
+    # this role is running for.
+    loop_var: devmachine_dev_path_line
+
+# `reshim` is what gives node, npm and npx an absolute path under
+# ~/.local/share/mise/shims, usable where mise has not been activated at all.
+#
+# No `creates` guard, and that is deliberate: a shim left over from an older
+# setup made the task skip while no global node was configured behind it, so
+# the shim pointed at nothing. `use -g` and `reshim` are both idempotent, so
+# running them every time costs a second and ensures the state.
+- name: Install the Node LTS through mise, and reshim
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_dev_home }}"
+  ansible.builtin.shell:
+    cmd: |
+      set -eu
+      ~/.local/bin/mise use -g node@{{ devmachine_dev_node_version }}
+      ~/.local/bin/mise reshim
+  changed_when: false
+  when: not ansible_check_mode or devmachine_dev_account.stat.exists

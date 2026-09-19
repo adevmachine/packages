@@ -1,0 +1,20 @@
+---
+# bun's installer unpacks a zip, and unzip is not on a server by default.
+devmachine_dev_packages:
+  - unzip
+  # Every installer below downloads with curl.
+  - curl
+
+# A release asset is named after the architecture Go names, which is not the
+# one the kernel reports: x86_64 is amd64 and aarch64 is arm64. A URL carrying
+# the uname spelling is a 404, and nothing says why.
+devmachine_go_architectures:
+  x86_64: amd64
+  aarch64: arm64
+  armv7l: armv6
+devmachine_go_architecture: >-
+  {{ devmachine_go_architectures.get(ansible_facts['architecture'], ansible_facts['architecture']) }}
+
+devmachine_dev_gh_url: >-
+  https://github.com/cli/cli/releases/download/v{{ devmachine_dev_gh_version }}/gh_{{
+  devmachine_dev_gh_version }}_linux_{{ devmachine_go_architecture }}.tar.gz
