@@ -1,0 +1,25 @@
+format: 1
+name: dev
+scope: workspace
+summary: >-
+  The four tools a workspace is expected to have: the GitHub CLI, bun, the Node
+  LTS through mise, and unzip. It installs gh; logging gh in is the gh-login
+  package's job.
+
+needs: [workspace, mise]
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  gh_version:
+    summary: >-
+      Which GitHub CLI release to install. It is a release asset rather than a
+      distribution package because most distributions do not carry gh at all.
+    default: "2.63.2"
+  node_version:
+    summary: Which Node mise installs globally.
+    default: lts

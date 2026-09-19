@@ -1,0 +1,16 @@
+format: 1
+name: mise
+scope: workspace
+summary: >-
+  mise, the per-project runtime manager, installed for one account and
+  activated in ~/.zshenv so it is on the PATH even without a terminal.
+
+needs: [workspace]
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>

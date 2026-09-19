@@ -1,0 +1,48 @@
+format: 1
+name: workspace
+scope: workspace
+summary: >-
+  The Linux account a person works in: a home nobody else can read, an SSH key
+  of its own, a git identity and ~/dev.
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: >-
+      Where the account's home is. Debian and Ubuntu put it under /home; a
+      machine whose useradd is configured otherwise says so here.
+    default: /home/<the account>
+  admin_home:
+    summary: >-
+      The home of the account the CLI provisions with. Whatever reaches that
+      account over SSH is what reaches this workspace.
+    default: /root
+  groups:
+    summary: >-
+      Extra Linux groups the account joins. The docker group is one of them and
+      it is effectively root, so nobody joins it by accident.
+    default: []
+  shell:
+    summary: >-
+      The login shell. Empty means whatever useradd would pick, and the package
+      that installs a shell is the one that sets it.
+    default: ""
+  git_name:
+    summary: The name on this workspace's commits.
+    default: ""
+  git_email:
+    summary: The address on this workspace's commits.
+    default: ""
+  sign_commits:
+    summary: Sign every commit and rebase with the account's own SSH key.
+    default: true
+  generate_key:
+    summary: Give the account an SSH key of its own when it has none.
+    default: true
+  known_hosts:
+    summary: >-
+      The hosts whose SSH host key is trusted in advance, so the first clone
+      does not stop to ask a question nobody is there to answer.
+    default: ["github.com"]

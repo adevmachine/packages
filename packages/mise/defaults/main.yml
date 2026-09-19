@@ -1,0 +1,2 @@
+---
+devmachine_mise_home: "/home/{{ devmachine_workspace.user }}"

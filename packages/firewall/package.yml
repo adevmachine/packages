@@ -7,3 +7,16 @@ summary: >-
 
 requires:
   cli: ">= 0.2.0"
+
+variables:
+  http:
+    summary: Open 80 and 443. A machine that hosts nothing can turn this off.
+    default: true
+  mosh_interface:
+    summary: >-
+      The one interface mosh's UDP range is opened on. Empty means it is not
+      opened at all, which keeps the range off a public edge.
+    default: ""
+  mosh_ports:
+    summary: The UDP range mosh is given on that interface.
+    default: "60000:61000"

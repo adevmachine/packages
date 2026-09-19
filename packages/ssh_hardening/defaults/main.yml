@@ -1,3 +1,12 @@
 ---
-# Debian calls the service `ssh` and overrides this in vars/Debian.yml.
-devmachine_sshd_service: sshd
+# What systemd calls sshd. Empty means the name this family uses, below.
+#
+# A setting arrives as a host variable, and a role's vars/ beats a host
+# variable — so the family's name cannot live under the same name as the
+# setting, or the setting would be delivered and then quietly overridden.
+devmachine_ssh_hardening_service: ""
+
+# The family's own name for it, overridden in vars/<family>.yml. It has a value
+# here as well, so a family with no file of its own still has a service to
+# reload.
+devmachine_ssh_hardening_family_service: sshd

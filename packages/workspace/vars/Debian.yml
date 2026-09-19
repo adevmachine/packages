@@ -1,0 +1,12 @@
+---
+devmachine_package_cache_command: apt-get update
+
+devmachine_workspace_packages:
+  # git is what the identity below is written with, and what a clone needs.
+  - git
+  # ssh-keygen and ssh-keyscan, for the account's own key and its known_hosts.
+  - openssh-client
+  # Ansible needs this to hand a temporary file to an unprivileged account it
+  # becomes. Without it, every task that runs as the workspace fails with
+  # "Failed to set permissions on the temporary files Ansible needs to create".
+  - acl

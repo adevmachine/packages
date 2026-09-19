@@ -5,3 +5,18 @@ summary: The base tools a development machine needs, plus a shared tmux config a
 
 requires:
   cli: ">= 0.2.0"
+
+variables:
+  timezone:
+    summary: >-
+      The machine's timezone, as tzdata spells it. Empty leaves whatever the
+      machine came with.
+    default: ""
+  hostname:
+    summary: The machine's hostname. Empty leaves the one it already has.
+    default: ""
+  upgrade:
+    summary: >-
+      Upgrade every package already installed. Off, because that is the owner's
+      decision and not a side effect of installing base tools.
+    default: false

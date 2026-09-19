@@ -12,3 +12,10 @@ provides:
 
 requires:
   cli: ">= 0.2.0"
+
+variables:
+  email:
+    summary: >-
+      The address the certificate authority writes to about an expiring
+      certificate. Empty means an anonymous account.
+    default: ""

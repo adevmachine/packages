@@ -1,2 +1,2 @@
 ---
-devmachine_sshd_service: ssh
+devmachine_ssh_hardening_family_service: ssh

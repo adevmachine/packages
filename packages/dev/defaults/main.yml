@@ -1,0 +1,5 @@
+---
+devmachine_dev_home: "/home/{{ devmachine_workspace.user }}"
+
+devmachine_dev_gh_version: "2.63.2"
+devmachine_dev_node_version: lts

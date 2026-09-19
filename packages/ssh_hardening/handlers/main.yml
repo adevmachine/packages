@@ -1,5 +1,5 @@
 ---
 - name: Reload sshd
   ansible.builtin.systemd:
-    name: "{{ devmachine_sshd_service }}"
+    name: "{{ devmachine_ssh_hardening_service | default(devmachine_ssh_hardening_family_service, true) }}"
     state: reloaded
