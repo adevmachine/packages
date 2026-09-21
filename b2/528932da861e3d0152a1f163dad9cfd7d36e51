@@ -1,0 +1,25 @@
+packages/claude-code/defaults/main.yml
+  s_cab674f14f5e3f::t_827a5f0ea198ab 1-17
+packages/claude-code/package.yml
+  s_cab674f14f5e3f::t_4fa3c0fdb8945f 1-62
+packages/claude-code/tasks/main.yml
+  s_cab674f14f5e3f::t_adbe4e9ef8f429 1-119
+packages/claude-code/vars/Debian.yml
+  s_cab674f14f5e3f::t_3183f8a083994d 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b2528932da861e3d0152a1f163dad9cfd7d36e51",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
