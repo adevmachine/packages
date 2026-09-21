@@ -1,0 +1,62 @@
+format: 1
+name: claude-code
+scope: workspace
+summary: >-
+  The Claude Code CLI for one account, its ~/.claude directory and the
+  settings.json the account starts with. Logging in is a person's job, once,
+  in each account.
+
+needs: [workspace]
+
+requires:
+  cli: ">= 0.4.0"
+
+credentials:
+  # scope: workspace because accounts usually differ between workspaces — one
+  # person's own, one client's. shareable: true because the session file does
+  # copy: somebody who works under a single account can share one login across
+  # every workspace, and says so in their own configuration.
+  - name: claude
+    kind: login
+    scope: workspace
+    shareable: true
+    command: claude /login
+    stored_at: ~/.claude/.credentials.json
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  status_line:
+    summary: >-
+      The command Claude Code runs to draw its status line. Empty leaves the
+      status line alone. It runs outside a login shell, so give it an absolute
+      path.
+    default: ""
+  remote_control_at_startup:
+    summary: >-
+      Connect every session to Remote Control as it opens, instead of waiting
+      for somebody to type /rc.
+    default: false
+  session_name_prefix:
+    summary: >-
+      What each Remote Control session is called in the phone app. Empty means
+      the workspace's name, which is what tells two workspaces' sessions apart.
+    default: ""
+  env:
+    summary: >-
+      Environment variables every Claude Code session runs with, as a map. It
+      is how a model-specific or terminal-specific workaround is turned on
+      without this package having an opinion about it.
+    default: {}
+  diff_sidebar:
+    summary: >-
+      Open the /diff panel. Unset leaves whatever Claude Code has. It is a
+      preference Claude Code keeps in its own state file, so this only amends
+      a file that already exists.
+    default: null
+  expanded_todos:
+    summary: >-
+      Show the task list under the footer. Unset leaves whatever Claude Code
+      has.
+    default: null

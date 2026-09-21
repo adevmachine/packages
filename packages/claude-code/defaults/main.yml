@@ -1,0 +1,17 @@
+---
+devmachine_claude_code_home: "/home/{{ devmachine_workspace.user }}"
+
+devmachine_claude_code_status_line: ""
+
+devmachine_claude_code_remote_control_at_startup: false
+
+# Empty means the workspace's name. Two workspaces both running Remote Control
+# otherwise appear in the phone app under names nothing tells apart.
+devmachine_claude_code_session_name_prefix: ""
+
+devmachine_claude_code_env: {}
+
+# Unset, and not false: these two are Claude Code's own preferences, kept in a
+# file it writes to constantly. Unset means leave them alone.
+devmachine_claude_code_diff_sidebar: null
+devmachine_claude_code_expanded_todos: null
