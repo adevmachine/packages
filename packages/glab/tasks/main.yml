@@ -1,0 +1,47 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install what the release is unpacked with
+  ansible.builtin.package:
+    name: "{{ devmachine_glab_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_glab_home }}"
+  register: devmachine_glab_account
+  check_mode: false
+
+- name: Install the GitLab CLI
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_glab_home }}"
+  ansible.builtin.shell:
+    cmd: |
+      set -eu
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+      curl -fsSL {{ devmachine_glab_url | quote }} -o "$tmp/glab.tar.gz"
+      tar xzf "$tmp/glab.tar.gz" -C "$tmp"
+      mkdir -p "$HOME/.local/bin"
+      install -m 0755 "$(find "$tmp" -type f -name glab | head -1)" "$HOME/.local/bin/glab"
+    creates: "{{ devmachine_glab_home }}/.local/bin/glab"
+  when: not ansible_check_mode or devmachine_glab_account.stat.exists
+
+# .zshenv is read by every zsh, interactive or not. The same line is written by
+# the dev package, and writing it twice costs nothing: lineinfile matches the
+# line it would add.
+- name: Put the account's own tools on the PATH
+  ansible.builtin.lineinfile:
+    path: "{{ devmachine_glab_home }}/.zshenv"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"

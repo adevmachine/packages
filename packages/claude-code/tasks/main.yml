@@ -1,0 +1,132 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install what the installer downloads with
+  ansible.builtin.package:
+    name: "{{ devmachine_claude_code_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_claude_code_home }}"
+  register: devmachine_claude_code_account
+  check_mode: false
+
+- name: Install the Claude Code CLI
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_code_home }}"
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://claude.ai/install.sh | bash
+    creates: "{{ devmachine_claude_code_home }}/.local/bin/claude"
+  when: not ansible_check_mode or devmachine_claude_code_account.stat.exists
+
+# .zshenv is read by every zsh, interactive or not. The same line is written by
+# the dev package, and writing it twice costs nothing: lineinfile matches the
+# line it would add.
+- name: Put the account's own tools on the PATH
+  ansible.builtin.lineinfile:
+    path: "{{ devmachine_claude_code_home }}/.zshenv"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+
+- name: Create ~/.claude
+  ansible.builtin.file:
+    path: "{{ devmachine_claude_code_home }}/.claude"
+    state: directory
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0755"
+
+- name: Read the settings this account already has
+  ansible.builtin.slurp:
+    src: "{{ devmachine_claude_code_home }}/.claude/settings.json"
+  register: devmachine_claude_code_settings
+  failed_when: false
+  check_mode: false
+
+# A merge, never a replacement: settings.json belongs to whoever works in this
+# account, and everything they put there that this package says nothing about
+# survives. It is also written when a value really differs and not when the
+# bytes do — Claude Code rewrites this file in its own layout whenever a plugin
+# is installed, and comparing the rendered text made the two packages take turns
+# reformatting it, a change reported on every run for ever.
+- name: Write the settings this workspace is configured with
+  vars:
+    devmachine_claude_code_current: >-
+      {{ (devmachine_claude_code_settings.content | b64decode | from_json)
+         if devmachine_claude_code_settings.content is defined else {} }}
+    devmachine_claude_code_prefix: >-
+      {{ devmachine_claude_code_session_name_prefix
+         | default(devmachine_workspace.name, true) }}
+    devmachine_claude_code_environment: >-
+      {{ devmachine_claude_code_env
+         | combine({'CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX': devmachine_claude_code_prefix}
+                   if devmachine_claude_code_remote_control_at_startup | bool else {}) }}
+    devmachine_claude_code_wanted: >-
+      {{ {}
+         | combine({'statusLine': {'type': 'command', 'command': devmachine_claude_code_status_line}}
+                   if devmachine_claude_code_status_line | length > 0 else {})
+         | combine({'remoteControlAtStartup': true}
+                   if devmachine_claude_code_remote_control_at_startup | bool else {})
+         | combine({'env': devmachine_claude_code_environment}
+                   if devmachine_claude_code_environment | length > 0 else {}) }}
+  ansible.builtin.copy:
+    dest: "{{ devmachine_claude_code_home }}/.claude/settings.json"
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+    content: "{{ devmachine_claude_code_current | combine(devmachine_claude_code_wanted, recursive=True) | to_nice_json }}\n"
+  when:
+    - devmachine_claude_code_wanted | length > 0
+    - devmachine_claude_code_current | combine(devmachine_claude_code_wanted, recursive=True)
+      != devmachine_claude_code_current
+
+- name: Read Claude Code's own state file
+  ansible.builtin.slurp:
+    src: "{{ devmachine_claude_code_home }}/.claude.json"
+  register: devmachine_claude_code_state
+  failed_when: false
+  check_mode: false
+
+# ~/.claude.json is Claude Code's, not ours: it rewrites it while a session
+# runs. So this amends a file that already exists and never creates one, and
+# it only writes when one of the two preferences really differs — a write on
+# top of a live session loses whatever it wrote after the read above.
+#
+# It also amends only a preference Claude Code already keeps there. A key it
+# does not know is dropped the next time it writes the file, and a setting that
+# is put back every run and taken away again reports a change for ever.
+- name: Set the screen preferences this workspace asked for
+  vars:
+    devmachine_claude_code_current_state: >-
+      {{ (devmachine_claude_code_state.content | b64decode | from_json)
+         if devmachine_claude_code_state.content is defined else {} }}
+    devmachine_claude_code_screen: >-
+      {{ {}
+         | combine({'diffSidebarOpen': devmachine_claude_code_diff_sidebar}
+                   if devmachine_claude_code_diff_sidebar is not none else {})
+         | combine({'showExpandedTodos': devmachine_claude_code_expanded_todos}
+                   if devmachine_claude_code_expanded_todos is not none else {})
+         | dict2items
+         | selectattr('key', 'in', devmachine_claude_code_current_state.keys() | list)
+         | items2dict }}
+  ansible.builtin.copy:
+    dest: "{{ devmachine_claude_code_home }}/.claude.json"
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0600"
+    content: "{{ devmachine_claude_code_current_state | combine(devmachine_claude_code_screen) | to_nice_json }}\n"
+  when:
+    - devmachine_claude_code_state.content is defined
+    - devmachine_claude_code_screen | length > 0
+    - devmachine_claude_code_current_state | combine(devmachine_claude_code_screen) != devmachine_claude_code_current_state

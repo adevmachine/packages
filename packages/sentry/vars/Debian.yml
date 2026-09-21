@@ -1,0 +1,4 @@
+---
+devmachine_sentry_packages:
+  # The installer downloads itself with curl.
+  - curl

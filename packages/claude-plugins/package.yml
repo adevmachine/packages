@@ -1,0 +1,39 @@
+format: 1
+name: claude-plugins
+scope: workspace
+summary: >-
+  Installs and updates Claude Code plugins in one account. It knows how, never
+  which: the marketplace and the plugin list are the operator's, and with no
+  marketplace configured it does nothing.
+
+needs: [claude-code]
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  claude:
+    summary: >-
+      Where the Claude Code CLI is. It is installed into the account's own
+      ~/.local/bin, so only a workspace that put it somewhere else says so.
+    default: <the home>/.local/bin/claude
+  marketplace:
+    summary: >-
+      Where the plugins come from: a GitHub repository written owner/name, a
+      git URL, or a path on the machine. Empty installs nothing.
+    default: ""
+  plugins:
+    summary: >-
+      Which plugins to install, each written <plugin>@<marketplace>. The
+      marketplace half is the name the marketplace gives itself, which is what
+      Claude Code installs and reports against.
+    default: []
+  update:
+    summary: >-
+      Re-fetch the marketplace and update every plugin on each run. It is off
+      by default because it cannot tell whether anything moved, so a run with
+      it on always reports a change.
+    default: false

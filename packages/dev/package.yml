@@ -3,13 +3,26 @@ name: dev
 scope: workspace
 summary: >-
   The four tools a workspace is expected to have: the GitHub CLI, bun, the Node
-  LTS through mise, and unzip. It installs gh; logging gh in is the gh-login
-  package's job.
+  LTS through mise, and unzip. It installs gh and declares the login gh needs;
+  one GitHub account normally serves every workspace on a machine.
 
 needs: [workspace, mise]
 
 requires:
   cli: ">= 0.4.0"
+
+credentials:
+  # scope: machine because one GitHub account serving every workspace is the
+  # ordinary case, and a workspace that needs its own says so in the operator's
+  # configuration. shareable: true because hosts.yml is a token in a file: a
+  # copy of it works on another account, which is what the operator repository
+  # has been doing by hand since before this CLI existed.
+  - name: gh
+    kind: login
+    scope: machine
+    shareable: true
+    command: gh auth login
+    stored_at: ~/.config/gh/hosts.yml
 
 variables:
   home:

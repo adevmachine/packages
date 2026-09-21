@@ -1,0 +1,10 @@
+---
+devmachine_claude_remote_control_home: "/home/{{ devmachine_workspace.user }}"
+
+# Empty means the workspace's name. Two workspaces both running this otherwise
+# appear in the phone app under names nothing tells apart.
+devmachine_claude_remote_control_session_name: ""
+
+devmachine_claude_remote_control_working_directory: "{{ devmachine_claude_remote_control_home }}/dev"
+
+devmachine_claude_remote_control_restart_seconds: 30

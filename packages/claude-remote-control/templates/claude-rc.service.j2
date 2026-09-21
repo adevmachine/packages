@@ -1,0 +1,12 @@
+[Unit]
+Description=Claude Code Remote Control ({{ devmachine_claude_remote_control_name }})
+
+[Service]
+ExecStart=%h/.local/bin/claude remote-control --name {{ devmachine_claude_remote_control_name | quote }}
+WorkingDirectory={{ devmachine_claude_remote_control_working_directory }}
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Restart=always
+RestartSec={{ devmachine_claude_remote_control_restart_seconds }}
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,92 @@
+---
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_claude_remote_control_home }}"
+  register: devmachine_claude_remote_control_account
+  check_mode: false
+
+# check_mode: false, and it is the whole reason this task is written out rather
+# than read from a fact. A command is skipped in check mode, which would leave
+# the uid empty — and the systemd task below would then look for a bus at
+# /run/user//bus and fail with "Failed to connect to bus" on every dry run.
+# Reading a uid changes nothing.
+- name: Find the account's uid
+  ansible.builtin.command: "id -u {{ devmachine_workspace.user | quote }}"
+  register: devmachine_claude_remote_control_uid
+  changed_when: false
+  check_mode: false
+  failed_when:
+    - devmachine_claude_remote_control_uid.rc != 0
+    - devmachine_claude_remote_control_account.stat.exists
+
+# Linger, or the user manager dies with the last logout and takes the unit with
+# it. With linger the manager comes up at boot and stays up with nobody logged
+# in, which is the only way this is worth running at all.
+- name: Let the account's systemd keep running with nobody logged in
+  ansible.builtin.command: "loginctl enable-linger {{ devmachine_workspace.user | quote }}"
+  args:
+    creates: "/var/lib/systemd/linger/{{ devmachine_workspace.user }}"
+  when: devmachine_claude_remote_control_account.stat.exists
+
+- name: Create ~/.config/systemd/user
+  ansible.builtin.file:
+    path: "{{ devmachine_claude_remote_control_home }}/.config/systemd/user"
+    state: directory
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0755"
+  when: devmachine_claude_remote_control_account.stat.exists
+
+- name: Install the unit
+  vars:
+    devmachine_claude_remote_control_name: >-
+      {{ devmachine_claude_remote_control_session_name
+         | default(devmachine_workspace.name, true) }}
+  ansible.builtin.template:
+    src: claude-rc.service.j2
+    dest: "{{ devmachine_claude_remote_control_home }}/.config/systemd/user/claude-rc.service"
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+  register: devmachine_claude_remote_control_unit
+  when: devmachine_claude_remote_control_account.stat.exists
+
+- name: Look for this account's Claude login
+  ansible.builtin.stat:
+    path: "{{ devmachine_claude_remote_control_home }}/.claude/.credentials.json"
+  register: devmachine_claude_remote_control_login
+  check_mode: false
+
+- name: Say why the session is not started
+  ansible.builtin.debug:
+    msg: >-
+      Nobody has logged in as {{ devmachine_workspace.user }} yet, so there is
+      no session to connect. Run `devmachine login {{ devmachine_workspace.name }}/claude`,
+      then sync again.
+  when:
+    - devmachine_claude_remote_control_account.stat.exists
+    - not devmachine_claude_remote_control_login.stat.exists
+
+# Restart=always is what keeps this up, so a unit started with no login would
+# sit in a restart loop for ever. That is why it starts only once the login
+# exists — and why the message above exists for when it does not.
+- name: Start the Remote Control session
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ devmachine_claude_remote_control_uid.stdout | default('') | trim }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ devmachine_claude_remote_control_uid.stdout | default('') | trim }}/bus"
+  ansible.builtin.systemd_service:
+    name: claude-rc
+    scope: user
+    daemon_reload: true
+    enabled: true
+    state: "{{ devmachine_claude_remote_control_unit.changed | ternary('restarted', 'started') }}"
+  when:
+    - not ansible_check_mode
+    - devmachine_claude_remote_control_account.stat.exists
+    - devmachine_claude_remote_control_login.stat.exists
