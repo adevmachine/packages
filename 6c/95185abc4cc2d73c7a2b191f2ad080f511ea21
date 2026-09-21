@@ -1,0 +1,24 @@
+packages/tailscale/tasks/main.yml
+  s_cab674f14f5e3f::t_47ed3278fa06ea 1-63
+packages/tailscale/vars/Debian.yml
+  s_cab674f14f5e3f::t_1ad01ba071589b 1-19
+packages/tailscale/package.yml
+  s_cab674f14f5e3f::t_4af74949914491 1-16,23-25,27-28
+  s_cab674f14f5e3f::t_7a7bb0f54bb0a4 17-22,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6c95185abc4cc2d73c7a2b191f2ad080f511ea21",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
