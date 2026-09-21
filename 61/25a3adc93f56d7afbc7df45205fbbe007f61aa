@@ -1,0 +1,21 @@
+packages/claude-code/package.yml
+  s_cab674f14f5e3f::t_c7482daad96df2 55-56,61
+packages/claude-code/tasks/main.yml
+  s_cab674f14f5e3f::t_7f204b23adaed1 59-62,89-92,105-108,119-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6125a3adc93f56d7afbc7df45205fbbe007f61aa",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
