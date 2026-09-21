@@ -1,0 +1,31 @@
+packages/git-key/defaults/main.yml
+  s_cab674f14f5e3f::t_e6fcbda9bdb40b 1-2
+packages/workspace/tasks/main.yml
+  s_cab674f14f5e3f::t_677be376f652fc 142
+packages/git-key/package.yml
+  s_cab674f14f5e3f::t_3b6cc1414a2f59 6-7,10-14
+  s_cab674f14f5e3f::t_0c9ff80f489847 1-5,8-9,15-22
+packages/git-key/files/devmachine-make-git-key
+  s_cab674f14f5e3f::t_cdd00eb2a9727a 1-23
+packages/git-key/tasks/main.yml
+  s_cab674f14f5e3f::t_092d5f9ce340e4 1-47
+packages/workspace/package.yml
+  s_cab674f14f5e3f::t_52eee13a0e6b72 39
+  s_cab674f14f5e3f::t_94bf6c6bcf8ae1 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "171b41f82c85bde86e9f22bd1cdf4974a4a86124",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
