@@ -3,7 +3,8 @@ name: sentry
 scope: workspace
 summary: >-
   The Sentry CLI, installed into one account's own ~/.local/bin. It installs
-  the tool only: the login opens a browser, so a person does it once.
+  the tool only: the login opens a browser, so a person does it once in each
+  workspace — the session is not one this CLI will copy.
 
 needs: [workspace]
 
@@ -12,14 +13,18 @@ requires:
 
 credentials:
   # scope: workspace because the organisation differs between workspaces.
-  # shareable: true because the token is written to a file and a copy of that
-  # file works anywhere, so one account across several workspaces is possible.
+  #
+  # shareable: false, and it is not caution for its own sake: the login is an
+  # OAuth flow and the result goes into a local database, not a token in a
+  # file. Nobody has shown that a copy of it works on another account, and a
+  # credential that is shared and then does not work is worse than one that is
+  # not shared.
   - name: sentry
     kind: login
     scope: workspace
-    shareable: true
-    command: sentry login
-    stored_at: ~/.sentryclirc
+    shareable: false
+    command: sentry auth login
+    stored_at: ~/.config/sentry/cli.db
 
 variables:
   home:
