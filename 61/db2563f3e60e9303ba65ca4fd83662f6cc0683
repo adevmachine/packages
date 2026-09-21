@@ -1,0 +1,33 @@
+packages/glab/defaults/main.yml
+  s_cab674f14f5e3f::t_d624c63dd6a86a 1-4
+packages/glab/package.yml
+  s_cab674f14f5e3f::t_11a79e310778ca 1-32
+packages/glab/tasks/main.yml
+  s_cab674f14f5e3f::t_37cd9e55eee231 1-47
+packages/glab/vars/Debian.yml
+  s_cab674f14f5e3f::t_afd32d988a4b6e 1-20
+packages/sentry/defaults/main.yml
+  s_cab674f14f5e3f::t_1240b5a452dc48 1-2
+packages/sentry/package.yml
+  s_cab674f14f5e3f::t_0f457ae04f30cd 1-27
+packages/sentry/tasks/main.yml
+  s_cab674f14f5e3f::t_9291607fffcb96 1-44
+packages/sentry/vars/Debian.yml
+  s_cab674f14f5e3f::t_16a3efd8784c24 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "61db2563f3e60e9303ba65ca4fd83662f6cc0683",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
