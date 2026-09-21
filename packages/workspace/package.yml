@@ -2,8 +2,8 @@ format: 1
 name: workspace
 scope: workspace
 summary: >-
-  The Linux account a person works in: a home nobody else can read, an SSH key
-  of its own, a git identity and ~/dev.
+  The Linux account a person works in: a home nobody else can read, a git
+  identity and ~/dev.
 
 requires:
   cli: ">= 0.4.0"
@@ -36,10 +36,7 @@ variables:
     summary: The address on this workspace's commits.
     default: ""
   sign_commits:
-    summary: Sign every commit and rebase with the account's own SSH key.
-    default: true
-  generate_key:
-    summary: Give the account an SSH key of its own when it has none.
+    summary: Sign every commit and rebase, once a package such as git-key sets up a key.
     default: true
   known_hosts:
     summary: >-

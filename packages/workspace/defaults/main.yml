@@ -21,7 +21,5 @@ devmachine_workspace_git_name: ""
 devmachine_workspace_git_email: ""
 devmachine_workspace_sign_commits: true
 
-devmachine_workspace_generate_key: true
-
 devmachine_workspace_known_hosts:
   - github.com
