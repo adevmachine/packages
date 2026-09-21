@@ -20,3 +20,6 @@ variables:
       Upgrade every package already installed. Off, because that is the owner's
       decision and not a side effect of installing base tools.
     default: false
+  swap:
+    summary: Size of a swapfile at /swapfile, such as 8G. Empty leaves the machine alone.
+    default: ""

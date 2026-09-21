@@ -10,3 +10,7 @@ devmachine_base_hostname: ""
 # Upgrading every package on a machine is the owner's decision, not a side
 # effect of installing base tools.
 devmachine_base_upgrade: false
+
+# Empty on purpose. Creating swap on somebody's machine because they installed
+# base tools is the same rudeness as setting their timezone.
+devmachine_base_swap: ""

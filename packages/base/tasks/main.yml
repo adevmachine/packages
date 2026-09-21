@@ -68,3 +68,47 @@
     owner: root
     group: root
     mode: "0755"
+
+# Empty by default on purpose. Creating swap on somebody's machine because they
+# installed base tools is the same rudeness as setting their timezone.
+- name: Look for an existing swapfile
+  ansible.builtin.stat:
+    path: /swapfile
+  register: devmachine_base_swapfile
+  when: devmachine_base_swap | length > 0
+
+- name: Create the swapfile
+  ansible.builtin.command: "fallocate -l {{ devmachine_base_swap }} /swapfile"
+  when:
+    - devmachine_base_swap | length > 0
+    - not devmachine_base_swapfile.stat.exists
+
+# A dry run against a machine with no swapfile yet cannot set the mode of a
+# file that fallocate only pretends to create in check mode, and would fail
+# saying so. The guard lets a dry run report nothing here, same as elsewhere
+# in this repository.
+- name: Keep the swapfile readable by root only
+  ansible.builtin.file:
+    path: /swapfile
+    mode: "0600"
+  when:
+    - devmachine_base_swap | length > 0
+    - not ansible_check_mode or devmachine_base_swapfile.stat.exists | default(false)
+
+- name: Format the swapfile
+  ansible.builtin.command: mkswap /swapfile
+  when:
+    - devmachine_base_swap | length > 0
+    - not devmachine_base_swapfile.stat.exists
+
+- name: Turn the swapfile on
+  ansible.builtin.command: swapon /swapfile
+  when:
+    - devmachine_base_swap | length > 0
+    - not devmachine_base_swapfile.stat.exists
+
+- name: Mount the swapfile on every boot
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "/swapfile none swap sw 0 0"
+  when: devmachine_base_swap | length > 0
