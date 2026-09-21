@@ -1,0 +1,27 @@
+format: 1
+name: sentry
+scope: workspace
+summary: >-
+  The Sentry CLI, installed into one account's own ~/.local/bin. It installs
+  the tool only: the login opens a browser, so a person does it once.
+
+needs: [workspace]
+
+requires:
+  cli: ">= 0.4.0"
+
+credentials:
+  # scope: workspace because the organisation differs between workspaces.
+  # shareable: true because the token is written to a file and a copy of that
+  # file works anywhere, so one account across several workspaces is possible.
+  - name: sentry
+    kind: login
+    scope: workspace
+    shareable: true
+    command: sentry login
+    stored_at: ~/.sentryclirc
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>

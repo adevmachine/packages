@@ -1,0 +1,2 @@
+---
+devmachine_sentry_home: "/home/{{ devmachine_workspace.user }}"

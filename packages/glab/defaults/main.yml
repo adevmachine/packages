@@ -1,0 +1,4 @@
+---
+devmachine_glab_home: "/home/{{ devmachine_workspace.user }}"
+
+devmachine_glab_version: "1.111.0"

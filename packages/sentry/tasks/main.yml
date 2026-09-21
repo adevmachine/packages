@@ -1,0 +1,44 @@
+---
+- name: Load the package names for this family
+  ansible.builtin.include_vars: "{{ ansible_facts['os_family'] }}.yml"
+
+- name: Install what the installer downloads with
+  ansible.builtin.package:
+    name: "{{ devmachine_sentry_packages }}"
+    state: present
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_sentry_home }}"
+  register: devmachine_sentry_account
+  check_mode: false
+
+# Into the account's own ~/.local/bin, so two workspaces can sit on different
+# versions without arguing, and neither needs root to move.
+- name: Install the Sentry CLI
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_sentry_home }}"
+    SENTRY_INSTALL_DIR: "{{ devmachine_sentry_home }}/.local/bin"
+    SENTRY_CLI_NO_TELEMETRY: "1"
+  ansible.builtin.shell:
+    cmd: curl -fsSL https://cli.sentry.dev/install | bash
+    creates: "{{ devmachine_sentry_home }}/.local/bin/sentry"
+  when: not ansible_check_mode or devmachine_sentry_account.stat.exists
+
+# .zshenv is read by every zsh, interactive or not. The same line is written by
+# the dev package, and writing it twice costs nothing: lineinfile matches the
+# line it would add.
+- name: Put the account's own tools on the PATH
+  ansible.builtin.lineinfile:
+    path: "{{ devmachine_sentry_home }}/.zshenv"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: true
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"

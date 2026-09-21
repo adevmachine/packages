@@ -1,0 +1,32 @@
+format: 1
+name: glab
+scope: workspace
+summary: >-
+  The GitLab CLI, installed into one account's own ~/.local/bin. It installs
+  the tool only: the login opens a browser, so a person does it once.
+
+needs: [workspace]
+
+requires:
+  cli: ">= 0.4.0"
+
+credentials:
+  # scope: workspace because the GitLab instance and the account differ between
+  # workspaces. shareable: true because the token is written to a file and a
+  # copy of that file works anywhere.
+  - name: glab
+    kind: login
+    scope: workspace
+    shareable: true
+    command: glab auth login
+    stored_at: ~/.config/glab-cli/config.yml
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  version:
+    summary: >-
+      Which GitLab CLI release to install. It is a release asset rather than a
+      distribution package because no distribution carries glab.
+    default: "1.111.0"

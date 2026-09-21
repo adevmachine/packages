@@ -1,0 +1,20 @@
+---
+devmachine_glab_packages:
+  # The release is a tarball, fetched with curl.
+  - curl
+  - tar
+
+# A release asset is named after the architecture Go names, which is not the
+# one the kernel reports: x86_64 is amd64 and aarch64 is arm64. A URL carrying
+# the uname spelling is a 404, and nothing says why.
+devmachine_go_architectures:
+  x86_64: amd64
+  aarch64: arm64
+  armv7l: armv6
+devmachine_go_architecture: >-
+  {{ devmachine_go_architectures.get(ansible_facts['architecture'], ansible_facts['architecture']) }}
+
+devmachine_glab_url: >-
+  https://gitlab.com/api/v4/projects/gitlab-org%2Fcli/packages/generic/glab/{{
+  devmachine_glab_version }}/glab_{{ devmachine_glab_version }}_linux_{{
+  devmachine_go_architecture }}.tar.gz
