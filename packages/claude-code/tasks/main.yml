@@ -56,7 +56,10 @@
 
 # A merge, never a replacement: settings.json belongs to whoever works in this
 # account, and everything they put there that this package says nothing about
-# survives.
+# survives. It is also written when a value really differs and not when the
+# bytes do — Claude Code rewrites this file in its own layout whenever a plugin
+# is installed, and comparing the rendered text made the two packages take turns
+# reformatting it, a change reported on every run for ever.
 - name: Write the settings this workspace is configured with
   vars:
     devmachine_claude_code_current: >-
@@ -83,7 +86,10 @@
     group: "{{ devmachine_workspace.user }}"
     mode: "0644"
     content: "{{ devmachine_claude_code_current | combine(devmachine_claude_code_wanted, recursive=True) | to_nice_json }}\n"
-  when: devmachine_claude_code_wanted | length > 0
+  when:
+    - devmachine_claude_code_wanted | length > 0
+    - devmachine_claude_code_current | combine(devmachine_claude_code_wanted, recursive=True)
+      != devmachine_claude_code_current
 
 - name: Read Claude Code's own state file
   ansible.builtin.slurp:
@@ -96,6 +102,10 @@
 # runs. So this amends a file that already exists and never creates one, and
 # it only writes when one of the two preferences really differs — a write on
 # top of a live session loses whatever it wrote after the read above.
+#
+# It also amends only a preference Claude Code already keeps there. A key it
+# does not know is dropped the next time it writes the file, and a setting that
+# is put back every run and taken away again reports a change for ever.
 - name: Set the screen preferences this workspace asked for
   vars:
     devmachine_claude_code_current_state: >-
@@ -106,7 +116,10 @@
          | combine({'diffSidebarOpen': devmachine_claude_code_diff_sidebar}
                    if devmachine_claude_code_diff_sidebar is not none else {})
          | combine({'showExpandedTodos': devmachine_claude_code_expanded_todos}
-                   if devmachine_claude_code_expanded_todos is not none else {}) }}
+                   if devmachine_claude_code_expanded_todos is not none else {})
+         | dict2items
+         | selectattr('key', 'in', devmachine_claude_code_current_state.keys() | list)
+         | items2dict }}
   ansible.builtin.copy:
     dest: "{{ devmachine_claude_code_home }}/.claude.json"
     owner: "{{ devmachine_workspace.user }}"

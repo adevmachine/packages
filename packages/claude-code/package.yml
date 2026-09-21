@@ -52,11 +52,11 @@ variables:
   diff_sidebar:
     summary: >-
       Open the /diff panel. Unset leaves whatever Claude Code has. It is a
-      preference Claude Code keeps in its own state file, so this only amends
-      a file that already exists.
+      preference Claude Code keeps in its own state file, so it is amended only
+      where that file, and that preference, already exist.
     default: null
   expanded_todos:
     summary: >-
       Show the task list under the footer. Unset leaves whatever Claude Code
-      has.
+      has, and the same condition applies.
     default: null
