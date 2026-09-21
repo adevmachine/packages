@@ -1,0 +1,121 @@
+---
+- name: Say why nothing is installed
+  ansible.builtin.debug:
+    msg: >-
+      No marketplace is configured, so this installs nothing. Set
+      claude-plugins.marketplace, and name each plugin <plugin>@<marketplace>.
+  when: devmachine_claude_plugins_marketplace | length == 0
+
+# A plugin is installed by its full name, and reported back by its full name.
+# An entry that leaves the marketplace out would be installed again on every
+# run, because nothing in the report would match it.
+- name: Check every plugin says which marketplace it comes from
+  ansible.builtin.assert:
+    that: "'@' in devmachine_claude_plugins_wanted"
+    fail_msg: >-
+      "{{ devmachine_claude_plugins_wanted }}" does not say which marketplace
+      it comes from. Write it as <plugin>@<marketplace>.
+    quiet: true
+  loop: "{{ devmachine_claude_plugins_plugins }}"
+  loop_control:
+    loop_var: devmachine_claude_plugins_wanted
+
+# A dry run on a machine where this account does not exist yet cannot become
+# it: Ansible has no user to hand its temporary files to, and fails saying so.
+# So every task below that runs as the account asks first, and a dry run
+# reports nothing about work an apply would have created the account for.
+- name: Look for the account
+  ansible.builtin.stat:
+    path: "{{ devmachine_claude_plugins_home }}"
+  register: devmachine_claude_plugins_account
+  check_mode: false
+
+# check_mode: false on both reads below. Reading a list changes nothing, and
+# without an answer every task after them has no way to tell what is already
+# there — a dry run would report installing everything, every time.
+- name: Look at the marketplaces this account already has
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_plugins_home }}"
+  ansible.builtin.command: "{{ devmachine_claude_plugins_claude }} plugin marketplace list --json"
+  register: devmachine_claude_plugins_marketplaces
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  when:
+    - devmachine_claude_plugins_marketplace | length > 0
+    - devmachine_claude_plugins_account.stat.exists
+
+- name: Register the marketplace the plugins come from
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_plugins_home }}"
+  ansible.builtin.command:
+    cmd: >-
+      {{ devmachine_claude_plugins_claude }} plugin marketplace add
+      {{ devmachine_claude_plugins_marketplace | quote }}
+  when:
+    - devmachine_claude_plugins_marketplace | length > 0
+    - devmachine_claude_plugins_account.stat.exists
+    - devmachine_claude_plugins_marketplace not in (devmachine_claude_plugins_marketplaces.stdout | default(''))
+
+- name: Look at the plugins this account already has
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_plugins_home }}"
+  ansible.builtin.command: "{{ devmachine_claude_plugins_claude }} plugin list --json"
+  register: devmachine_claude_plugins_installed
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  when:
+    - devmachine_claude_plugins_marketplace | length > 0
+    - devmachine_claude_plugins_account.stat.exists
+
+- name: Install the plugins that are not there yet
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_plugins_home }}"
+  ansible.builtin.command:
+    cmd: >-
+      {{ devmachine_claude_plugins_claude }} plugin install -y
+      {{ devmachine_claude_plugins_wanted | quote }}
+  loop: "{{ devmachine_claude_plugins_plugins }}"
+  loop_control:
+    # Never `item`. The generated playbook runs this role in a loop of its own,
+    # and `devmachine_workspace` is that loop's variable — so an inner loop
+    # named the ordinary way is one rename away from shadowing it.
+    loop_var: devmachine_claude_plugins_wanted
+  when:
+    - devmachine_claude_plugins_marketplace | length > 0
+    - devmachine_claude_plugins_account.stat.exists
+    - >-
+      ('"' + devmachine_claude_plugins_wanted + '"')
+      not in (devmachine_claude_plugins_installed.stdout | default(''))
+
+# Nothing here can tell whether the marketplace moved, so this always reports a
+# change. It is off by default for that reason: a converge that reports a
+# change every time stops meaning anything.
+- name: Bring the marketplace and the plugins up to date
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_claude_plugins_home }}"
+  ansible.builtin.shell:
+    cmd: |
+      set -eu
+      {{ devmachine_claude_plugins_claude }} plugin marketplace update
+      for plugin in {{ devmachine_claude_plugins_plugins | map('quote') | join(' ') }}; do
+        {{ devmachine_claude_plugins_claude }} plugin update "$plugin"
+      done
+  changed_when: true
+  when:
+    - devmachine_claude_plugins_update | bool
+    - devmachine_claude_plugins_marketplace | length > 0
+    - devmachine_claude_plugins_plugins | length > 0
+    - devmachine_claude_plugins_account.stat.exists
+    - not ansible_check_mode

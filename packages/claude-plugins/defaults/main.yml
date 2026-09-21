@@ -1,0 +1,11 @@
+---
+devmachine_claude_plugins_home: "/home/{{ devmachine_workspace.user }}"
+
+devmachine_claude_plugins_claude: "{{ devmachine_claude_plugins_home }}/.local/bin/claude"
+
+# Empty on purpose. A marketplace is one person's, and naming one here would
+# put it in every copy of this repository.
+devmachine_claude_plugins_marketplace: ""
+devmachine_claude_plugins_plugins: []
+
+devmachine_claude_plugins_update: false
