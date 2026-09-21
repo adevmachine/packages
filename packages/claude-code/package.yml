@@ -17,7 +17,7 @@ credentials:
   # copy: somebody who works under a single account can share one login across
   # every workspace, and says so in their own configuration.
   - name: claude
-    kind: login
+    kind: manual
     scope: workspace
     shareable: true
     command: claude /login

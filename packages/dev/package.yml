@@ -18,7 +18,7 @@ credentials:
   # copy of it works on another account, which is what the operator repository
   # has been doing by hand since before this CLI existed.
   - name: gh
-    kind: login
+    kind: manual
     scope: machine
     shareable: true
     command: gh auth login

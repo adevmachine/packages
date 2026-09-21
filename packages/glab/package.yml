@@ -15,7 +15,7 @@ credentials:
   # workspaces. shareable: true because the token is written to a file and a
   # copy of that file works anywhere.
   - name: glab
-    kind: login
+    kind: manual
     scope: workspace
     shareable: true
     command: glab auth login

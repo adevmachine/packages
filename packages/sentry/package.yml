@@ -20,7 +20,7 @@ credentials:
   # credential that is shared and then does not work is worse than one that is
   # not shared.
   - name: sentry
-    kind: login
+    kind: manual
     scope: workspace
     shareable: false
     command: sentry auth login
