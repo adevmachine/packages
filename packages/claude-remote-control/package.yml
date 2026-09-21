@@ -1,0 +1,30 @@
+format: 1
+name: claude-remote-control
+scope: workspace
+summary: >-
+  Keeps one account's Claude Code Remote Control session up: a user systemd
+  unit plus linger, so it survives every logout. It starts only where that
+  account has logged in, because there is nothing to connect without a session.
+
+needs: [claude-code]
+
+requires:
+  cli: ">= 0.4.0"
+
+variables:
+  home:
+    summary: Where the account's home is.
+    default: /home/<the account>
+  session_name:
+    summary: >-
+      What this session is called in the phone app. Empty means the
+      workspace's name, which is what tells two workspaces' sessions apart.
+    default: ""
+  working_directory:
+    summary: The directory a remote session starts in.
+    default: <the home>/dev
+  restart_seconds:
+    summary: >-
+      How long to wait before reconnecting. The server gives up on its own
+      after about ten minutes with no network, so the unit restarts for good.
+    default: 30
