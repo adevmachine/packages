@@ -1,0 +1,23 @@
+packages/cloudflare/test/test_provider.py
+  s_cab674f14f5e3f::t_2a24c11c9d7aba 272-274
+packages/hostinger/bin/provider
+  s_cab674f14f5e3f::t_ed427317becc54 142-149
+packages/hostinger/test/test_provider.py
+  s_cab674f14f5e3f::t_05c09aacb4d130 161-167,280-282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "28714cdbac311f2045ff49a44d13105b82a94a7c",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
