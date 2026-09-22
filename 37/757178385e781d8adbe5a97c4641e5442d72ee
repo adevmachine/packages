@@ -1,0 +1,23 @@
+packages/git-key/files/devmachine-make-git-key
+  s_cab674f14f5e3f::t_958be6a1d85b52 4-7,18,24
+packages/git-key/package.yml
+  s_cab674f14f5e3f::t_71681d44c8085e 3,21
+packages/git-key/tasks/main.yml
+  s_cab674f14f5e3f::t_4388f07f4610c7 2-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "37757178385e781d8adbe5a97c4641e5442d72ee",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
