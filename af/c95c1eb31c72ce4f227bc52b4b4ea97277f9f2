@@ -1,0 +1,39 @@
+packages/hostinger/test/test_provider.py
+  s_cab674f14f5e3f::t_8ccf231a38c0e2 1-251
+packages/hostinger/bin/provider
+  s_cab674f14f5e3f::t_39d378997d285a 3-209
+  s_cab674f14f5e3f::t_583e77e7a87623 1-2
+  s_cab674f14f5e3f::t_a93ac4f992c186 210-212
+packages/hostinger/tasks/main.yml
+  s_cab674f14f5e3f::t_0965b9e0a3ae33 2-4
+  s_cab674f14f5e3f::t_558b5a83027185 1
+  s_cab674f14f5e3f::t_b2e29f3a2fd2a1 5
+packages/hostinger/package.yml
+  s_cab674f14f5e3f::t_0327d38d63c213 5-14
+  s_cab674f14f5e3f::t_1c7b7742ef01c8 2-4
+  s_e5d74673b74181::t_576247575e96c6 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "afc95c1eb31c72ce4f227bc52b4b4ea97277f9f2",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    },
+    "s_e5d74673b74181": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5a55622282cf75b1",
+        "model": "unknown"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
