@@ -181,6 +181,31 @@ def cmd_delete(zone, record):
     print(json.dumps({}))
 
 
+def cmd_zones():
+    # The DNS API answers about one zone at a time, so what a token can see
+    # comes from the account's domains rather than from the DNS endpoints.
+    portfolio = call("GET", "/api/domains/v1/portfolio")
+    names = []
+    for entry in portfolio if isinstance(portfolio, list) else portfolio.get("data", []):
+        name = entry.get("domain") or entry.get("name")
+        if name:
+            names.append(name)
+    print(json.dumps({"zones": names}))
+
+
+COMMANDS = [
+    {"name": "zones", "summary": "The zones this token can see."},
+    {"name": "list", "summary": "Every record in a zone.", "args": "<zone>"},
+    {"name": "upsert", "summary": "Make a name hold exactly one value.", "args": "<zone>"},
+    {"name": "delete", "summary": "Remove one value from a name.", "args": "<zone>"},
+    {"name": "help", "summary": "This list."},
+]
+
+
+def cmd_help():
+    print(json.dumps({"commands": COMMANDS}))
+
+
 def read_record():
     raw = sys.stdin.read()
     try:
@@ -190,10 +215,21 @@ def read_record():
 
 
 def main(argv):
-    if len(argv) < 3:
-        fail("invalid_record", "usage: provider list|upsert|delete <zone>")
+    if len(argv) < 2:
+        fail("invalid_record", "usage: provider zones|list|upsert|delete|help [<zone>]")
 
     command = argv[1]
+
+    if command == "zones":
+        cmd_zones()
+        return
+
+    if command == "help":
+        cmd_help()
+        return
+
+    if len(argv) < 3:
+        fail("invalid_record", "usage: provider %s <zone>" % command)
     zone = argv[2]
 
     if command == "list":

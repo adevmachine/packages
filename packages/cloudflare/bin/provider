@@ -190,6 +190,26 @@ def cmd_delete(zone, record):
     print(json.dumps({}))
 
 
+def cmd_zones():
+    # per_page because v4 pages at a size it does not document, so the default
+    # would silently hide zones on an account with many of them.
+    envelope = call("GET", "/zones?per_page=50")
+    print(json.dumps({"zones": [z["name"] for z in envelope.get("result") or []]}))
+
+
+COMMANDS = [
+    {"name": "zones", "summary": "The zones this token can see."},
+    {"name": "list", "summary": "Every record in a zone.", "args": "<zone>"},
+    {"name": "upsert", "summary": "Make a name hold exactly one value.", "args": "<zone>"},
+    {"name": "delete", "summary": "Remove one value from a name.", "args": "<zone>"},
+    {"name": "help", "summary": "This list."},
+]
+
+
+def cmd_help():
+    print(json.dumps({"commands": COMMANDS}))
+
+
 def read_record():
     raw = sys.stdin.read()
     try:
@@ -199,10 +219,21 @@ def read_record():
 
 
 def main(argv):
-    if len(argv) < 3:
-        fail("invalid_record", "usage: provider list|upsert|delete <zone>")
+    if len(argv) < 2:
+        fail("invalid_record", "usage: provider zones|list|upsert|delete|help [<zone>]")
 
     command = argv[1]
+
+    if command == "zones":
+        cmd_zones()
+        return
+
+    if command == "help":
+        cmd_help()
+        return
+
+    if len(argv) < 3:
+        fail("invalid_record", "usage: provider %s <zone>" % command)
     zone = argv[2]
 
     if command == "list":

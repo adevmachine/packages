@@ -29,6 +29,9 @@ class FakeHostinger(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.server.requests.append(("GET", self.path, None))
+        if self.path.startswith("/api/domains/v1/portfolio"):
+            self._reply(200, self.server.portfolio)
+            return
         zone = self.server.zone
         if zone is None:
             self._reply(401, {"message": "Unauthenticated.", "correlation_id": "c-1"})
@@ -77,6 +80,7 @@ class FakeServer(HTTPServer):
         self.requests = []
         self.not_found = False
         self.rate_limited = False
+        self.portfolio = []
 
 
 class ProviderTest(unittest.TestCase):
@@ -249,3 +253,30 @@ class ProviderTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContractTest(ProviderTest):
+    def test_zones_reports_what_the_token_can_see(self):
+        self.server.portfolio = [{"domain": "example.com"}, {"domain": "example.net"}]
+        result = self.run_provider(["zones"])
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout), {"zones": ["example.com", "example.net"]})
+
+    def test_zones_takes_no_zone(self):
+        # `zones` is how the CLI finds out which registrar holds a name, so
+        # asking it for a zone first would be circular.
+        self.server.portfolio = []
+        self.assertEqual(self.run_provider(["zones"]).returncode, 0)
+
+    def test_help_lists_every_command_the_manifest_declares(self):
+        # `devmachine packages help` asks the package itself. A manifest that
+        # declares a command the entrypoint refuses is a lie nothing catches.
+        result = self.run_provider(["help"])
+        self.assertEqual(result.returncode, 0)
+        names = [c["name"] for c in json.loads(result.stdout)["commands"]]
+        self.assertEqual(sorted(names), ["delete", "help", "list", "upsert", "zones"])
+
+    def test_a_command_that_needs_a_zone_says_so(self):
+        result = self.run_provider(["list"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout)["error"]["kind"], "invalid_record")

@@ -43,7 +43,9 @@ class FakeCloudflare(BaseHTTPRequestHandler):
 
         if parsed.path == "/zones":
             name = qs.get("name", [None])[0]
-            matches = [z for z in self.server.zones if z["name"] == name]
+            # No name is how the real API says "every zone this token sees",
+            # which is what `zones` asks for.
+            matches = self.server.zones if name is None else [z for z in self.server.zones if z["name"] == name]
             self._reply(200, self._envelope(matches))
             return
 
@@ -246,3 +248,30 @@ class ProviderTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContractTest(ProviderTest):
+    def test_zones_reports_every_zone_the_token_sees(self):
+        self.server.zones = [{"id": "z1", "name": "example.com"}, {"id": "z2", "name": "example.net"}]
+        result = self.run_provider(["zones"])
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout), {"zones": ["example.com", "example.net"]})
+
+    def test_zones_asks_for_a_page_size(self):
+        # v4 does not document its default page size, so leaving it out hides
+        # zones on an account with many of them.
+        self.server.zones = [{"id": "z1", "name": "example.com"}]
+        self.run_provider(["zones"])
+        gets = [r for r in self.server.requests if r[0] == "GET" and r[1] == "/zones"]
+        self.assertTrue(any("per_page" in r[2] for r in gets), gets)
+
+    def test_help_lists_every_command_the_manifest_declares(self):
+        result = self.run_provider(["help"])
+        self.assertEqual(result.returncode, 0)
+        names = [c["name"] for c in json.loads(result.stdout)["commands"]]
+        self.assertEqual(sorted(names), ["delete", "help", "list", "upsert", "zones"])
+
+    def test_a_command_that_needs_a_zone_says_so(self):
+        result = self.run_provider(["list"])
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout)["error"]["kind"], "invalid_record")
