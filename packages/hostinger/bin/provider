@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.request
+
+DEFAULT_BASE = "https://developers.hostinger.com"
+
+# Types whose content cannot round-trip through a single Value string: MX and
+# SRV carry structured data (a priority) that Hostinger folds into "content"
+# and this contract has no field for.
+ROUND_TRIP_TYPES = {"A", "AAAA", "CNAME", "TXT"}
+
+
+def fail(kind, message):
+    print(json.dumps({"error": {"kind": kind, "message": message}}))
+    sys.exit(1)
+
+
+def base_url():
+    return os.environ.get("DEVMACHINE_DNS_BASE", DEFAULT_BASE)
+
+
+def token():
+    value = os.environ.get("HOSTINGER_API_TOKEN", "")
+    if not value:
+        fail("unauthenticated", "HOSTINGER_API_TOKEN is not set")
+    return value
+
+
+def call(method, path, body=None):
+    url = base_url() + path
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+    request = urllib.request.Request(url, data=data, method=method)
+    request.add_header("Authorization", "Bearer " + token())
+    request.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(request) as response:
+            raw = response.read()
+            return json.loads(raw) if raw else None
+    except urllib.error.HTTPError as error:
+        raw = error.read()
+        try:
+            payload = json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            payload = {}
+        message = payload.get("message", "request failed")
+        if error.code == 401:
+            fail("unauthenticated", message)
+        if error.code == 404:
+            fail("zone_not_found", message)
+        if error.code == 422:
+            fail("invalid_record", message)
+        if error.code == 429:
+            fail("rate_limited", message)
+        fail("invalid_record", "%s (HTTP %d)" % (message, error.code))
+
+
+def get_zone(zone):
+    return call("GET", "/api/dns/v1/zones/%s" % zone)
+
+
+def normalize_txt(content):
+    if content.startswith('"') and content.endswith('"') and len(content) >= 2:
+        return content[1:-1]
+    return content
+
+
+def normalize_content(record_type, content):
+    if record_type == "TXT":
+        return normalize_txt(content)
+    if record_type in ("CNAME", "NS", "ALIAS"):
+        return content.rstrip(".").lower()
+    return content
+
+
+def find_rrset(zone_records, name, record_type):
+    for rrset in zone_records:
+        if rrset["name"] == name and rrset["type"] == record_type:
+            return rrset
+    return None
+
+
+def cmd_list(zone):
+    records = get_zone(zone)
+    out = []
+    for rrset in records:
+        if rrset["type"] not in ROUND_TRIP_TYPES:
+            continue
+        for entry in rrset["records"]:
+            out.append(
+                {
+                    "name": rrset["name"],
+                    "type": rrset["type"],
+                    "value": entry["content"],
+                    "ttl": rrset["ttl"],
+                }
+            )
+    print(json.dumps({"records": out}))
+
+
+def put(zone, name, record_type, ttl, contents, overwrite):
+    call(
+        "PUT",
+        "/api/dns/v1/zones/%s" % zone,
+        {
+            "overwrite": overwrite,
+            "zone": [
+                {
+                    "name": name,
+                    "type": record_type,
+                    "ttl": ttl,
+                    "records": [{"content": c} for c in contents],
+                }
+            ],
+        },
+    )
+
+
+def cmd_upsert(zone, record):
+    name = record["name"]
+    record_type = record["type"]
+    value = record["value"]
+    ttl = record.get("ttl") or 0
+
+    existing = find_rrset(get_zone(zone), name, record_type)
+
+    if existing is None:
+        put(zone, name, record_type, ttl, [value], overwrite=False)
+        print(json.dumps({}))
+        return
+
+    current = [e["content"] for e in existing["records"]]
+    if len(current) == 1 and normalize_content(record_type, current[0]) == normalize_content(record_type, value):
+        print(json.dumps({}))
+        return
+
+    put(zone, name, record_type, ttl or existing["ttl"], [value], overwrite=True)
+    print(json.dumps({}))
+
+
+def delete_rrset(zone, name, record_type):
+    call(
+        "DELETE",
+        "/api/dns/v1/zones/%s" % zone,
+        {"filters": [{"name": name, "type": record_type}]},
+    )
+
+
+def cmd_delete(zone, record):
+    name = record["name"]
+    record_type = record["type"]
+    value = record.get("value", "")
+
+    existing = find_rrset(get_zone(zone), name, record_type)
+    if existing is None:
+        print(json.dumps({}))
+        return
+
+    if not value:
+        delete_rrset(zone, name, record_type)
+        print(json.dumps({}))
+        return
+
+    keepers = [
+        e["content"]
+        for e in existing["records"]
+        if normalize_content(record_type, e["content"]) != normalize_content(record_type, value)
+    ]
+
+    delete_rrset(zone, name, record_type)
+
+    if keepers:
+        time.sleep(2)
+        put(zone, name, record_type, existing["ttl"], keepers, overwrite=False)
+
+    print(json.dumps({}))
+
+
+def read_record():
+    raw = sys.stdin.read()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        fail("invalid_record", "stdin is not valid JSON")
+
+
+def main(argv):
+    if len(argv) < 3:
+        fail("invalid_record", "usage: provider list|upsert|delete <zone>")
+
+    command = argv[1]
+    zone = argv[2]
+
+    if command == "list":
+        cmd_list(zone)
+        return
+
+    if command == "upsert":
+        cmd_upsert(zone, read_record())
+        return
+
+    if command == "delete":
+        cmd_delete(zone, read_record())
+        return
+
+    fail("invalid_record", "unknown command " + repr(command))
+
+
+if __name__ == "__main__":
+    main(sys.argv)

@@ -1,3 +1,4 @@
 *.tar.gz
 checksums.txt
 CLAUDE.local.md
+__pycache__/

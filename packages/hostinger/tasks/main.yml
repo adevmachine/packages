@@ -1,0 +1,5 @@
+---
+- name: Make sure Python is available
+  package:
+    name: python3
+    state: present
