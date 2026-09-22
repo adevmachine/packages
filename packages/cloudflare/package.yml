@@ -1,0 +1,14 @@
+format: 1
+name: cloudflare
+scope: machine
+kind: dns
+summary: DNS zones on Cloudflare.
+entrypoint: bin/provider
+commands: [zones, list, upsert, delete, help]
+credentials:
+  - name: cloudflare
+    kind: secret
+    scope: machine
+    env: CLOUDFLARE_API_TOKEN
+requires:
+  cli: ">= 0.4.0"

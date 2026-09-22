@@ -1,0 +1,224 @@
+#!/usr/bin/env python3
+import json
+import os
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+DEFAULT_BASE = "https://api.cloudflare.com/client/v4"
+PER_PAGE = "100"
+
+# Types whose content cannot round-trip through a single Value string: MX and
+# SRV carry a numeric priority in its own field, not inside "content".
+ROUND_TRIP_TYPES = {"A", "AAAA", "CNAME", "TXT"}
+
+
+def fail(kind, message):
+    print(json.dumps({"error": {"kind": kind, "message": message}}))
+    sys.exit(1)
+
+
+def base_url():
+    return os.environ.get("DEVMACHINE_DNS_BASE", DEFAULT_BASE)
+
+
+def token():
+    value = os.environ.get("CLOUDFLARE_API_TOKEN", "")
+    if not value:
+        fail("unauthenticated", "CLOUDFLARE_API_TOKEN is not set")
+    return value
+
+
+def message_from(envelope, fallback):
+    errors = envelope.get("errors") or []
+    if errors:
+        return "; ".join(e.get("message", fallback) for e in errors)
+    return fallback
+
+
+def call(method, path, body=None):
+    url = base_url() + path
+    data = json.dumps(body).encode() if body is not None else None
+    request = urllib.request.Request(url, data=data, method=method)
+    request.add_header("Authorization", "Bearer " + token())
+    request.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(request) as response:
+            status = response.status
+            raw = response.read()
+    except urllib.error.HTTPError as error:
+        status = error.code
+        raw = error.read()
+
+    try:
+        envelope = json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        envelope = {}
+
+    if status == 429:
+        fail("rate_limited", "cloudflare is throttling this token")
+    if status == 401:
+        fail("unauthenticated", message_from(envelope, "the token was rejected"))
+    if status == 403:
+        fail("forbidden", message_from(envelope, "the token cannot change this zone"))
+
+    # Cloudflare's v4 envelope is the source of truth, not the HTTP status:
+    # a general failure can still arrive with a 200.
+    if not envelope.get("success", False):
+        fail("invalid_record", message_from(envelope, "request failed"))
+
+    return envelope
+
+
+def zone_id(zone):
+    query = urllib.parse.urlencode({"name": zone, "per_page": PER_PAGE})
+    envelope = call("GET", "/zones?" + query)
+    result = envelope.get("result") or []
+    if not result:
+        # A name with no matching zone is a 200 with an empty result, not a 404.
+        fail("zone_not_found", "no zone named %r on this account, or the token cannot see it" % zone)
+    return result[0]["id"]
+
+
+def list_records(zid, record_type=None, name=None):
+    params = {"per_page": PER_PAGE}
+    if record_type:
+        params["type"] = record_type
+    if name:
+        params["name.exact"] = name
+    query = urllib.parse.urlencode(params)
+    envelope = call("GET", "/zones/%s/dns_records?%s" % (zid, query))
+    return envelope.get("result") or []
+
+
+def full_name(zone, label):
+    if label == "@":
+        return zone
+    return "%s.%s" % (label, zone)
+
+
+def label_from_full(zone, full):
+    if full == zone:
+        return "@"
+    suffix = "." + zone
+    if full.endswith(suffix):
+        return full[: -len(suffix)]
+    return full
+
+
+def cmd_list(zone):
+    zid = zone_id(zone)
+    records = list_records(zid)
+    out = []
+    for record in records:
+        if record["type"] not in ROUND_TRIP_TYPES:
+            continue
+        out.append(
+            {
+                "name": label_from_full(zone, record["name"]),
+                "type": record["type"],
+                "value": record["content"],
+                "ttl": record["ttl"],
+            }
+        )
+    print(json.dumps({"records": out}))
+
+
+def cloudflare_ttl(ttl):
+    # 0 means "choose": Cloudflare's own choice is ttl 1, "automatic".
+    return 1 if not ttl else ttl
+
+
+def cmd_upsert(zone, record):
+    name = record["name"]
+    record_type = record["type"]
+    value = record["value"]
+    ttl = cloudflare_ttl(record.get("ttl") or 0)
+
+    full = full_name(zone, name)
+    zid = zone_id(zone)
+    matches = list_records(zid, record_type=record_type, name=full)
+
+    if not matches:
+        call(
+            "POST",
+            "/zones/%s/dns_records" % zid,
+            {"type": record_type, "name": full, "content": value, "ttl": ttl, "proxied": False},
+        )
+        print(json.dumps({}))
+        return
+
+    if len(matches) > 1:
+        fail(
+            "ambiguous",
+            "%s %s has %d values; refusing to guess which one to change" % (full, record_type, len(matches)),
+        )
+
+    current = matches[0]
+    if current["content"] == value and current["ttl"] == ttl:
+        print(json.dumps({}))
+        return
+
+    # PATCH, never PUT: a PUT that omits proxied, ttl, comment or tags resets
+    # them to defaults, so changing an address would silently clear the rest.
+    call("PATCH", "/zones/%s/dns_records/%s" % (zid, current["id"]), {"content": value, "ttl": ttl})
+    print(json.dumps({}))
+
+
+def cmd_delete(zone, record):
+    name = record["name"]
+    record_type = record["type"]
+    value = record.get("value", "")
+
+    full = full_name(zone, name)
+    zid = zone_id(zone)
+    matches = list_records(zid, record_type=record_type, name=full)
+
+    if not value:
+        for match in matches:
+            call("DELETE", "/zones/%s/dns_records/%s" % (zid, match["id"]))
+        print(json.dumps({}))
+        return
+
+    target = next((m for m in matches if m["content"] == value), None)
+    if target is None:
+        print(json.dumps({}))
+        return
+
+    call("DELETE", "/zones/%s/dns_records/%s" % (zid, target["id"]))
+    print(json.dumps({}))
+
+
+def read_record():
+    raw = sys.stdin.read()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        fail("invalid_record", "stdin is not valid JSON")
+
+
+def main(argv):
+    if len(argv) < 3:
+        fail("invalid_record", "usage: provider list|upsert|delete <zone>")
+
+    command = argv[1]
+    zone = argv[2]
+
+    if command == "list":
+        cmd_list(zone)
+        return
+
+    if command == "upsert":
+        cmd_upsert(zone, read_record())
+        return
+
+    if command == "delete":
+        cmd_delete(zone, read_record())
+        return
+
+    fail("invalid_record", "unknown command " + repr(command))
+
+
+if __name__ == "__main__":
+    main(sys.argv)
