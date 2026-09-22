@@ -1,0 +1,39 @@
+packages/cloudflare/test/test_provider.py
+  s_cab674f14f5e3f::t_b6133694867876 1-248
+packages/cloudflare/package.yml
+  s_cab674f14f5e3f::t_b45090ec858fc9 5-14
+  s_cab674f14f5e3f::t_9574397722a46e 2-4
+  s_e5d74673b74181::t_09c40527bb1abb 1
+packages/cloudflare/bin/provider
+  s_cab674f14f5e3f::t_e2fdf4cb3c9f08 3-218
+  s_cab674f14f5e3f::t_b09347e6e02fbd 1-2
+  s_cab674f14f5e3f::t_fcdba4c28bb7e4 219-221
+packages/cloudflare/tasks/main.yml
+  s_cab674f14f5e3f::t_6e2458b68cf9c1 2-4
+  s_cab674f14f5e3f::t_80ae10806e5410 1
+  s_cab674f14f5e3f::t_eeb9f43c5cc469 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "58a35bcc3af0f10d77388dfcda4f24c5a010a3a2",
+  "prompts": {},
+  "sessions": {
+    "s_cab674f14f5e3f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dd5021d0-4808-4af3-adb9-b4a4809bf18c",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    },
+    "s_e5d74673b74181": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5a55622282cf75b1",
+        "model": "unknown"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
