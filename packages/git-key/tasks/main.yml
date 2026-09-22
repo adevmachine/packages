@@ -1,4 +1,16 @@
 ---
+# On PATH, not under the role: the credential's `command` is what a person
+# types, and a path into /opt/devmachine changes with where the package came
+# from (a released package unpacks into roles/, a local one into roles.local/).
+- name: Install the key maker
+  become: true
+  ansible.builtin.copy:
+    src: devmachine-make-git-key
+    dest: /usr/local/bin/devmachine-make-git-key
+    owner: root
+    group: root
+    mode: "0755"
+
 # The CLI copies the private key into this workspace after every workspace
 # package's own tasks have run (the account has to exist before a credential
 # lands in it), so on the first sync the key is not here yet. The tasks below

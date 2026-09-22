@@ -1,6 +1,6 @@
 format: 1
 name: git-key
-scope: machine
+scope: workspace
 summary: One SSH key the whole machine pushes to a forge with, copied into each workspace.
 
 needs: [workspace]
@@ -18,5 +18,5 @@ credentials:
     kind: manual
     scope: machine
     shareable: true
-    command: /opt/devmachine/roles/git-key/files/devmachine-make-git-key
+    command: devmachine-make-git-key
     stored_at: ~/.ssh/id_ed25519

@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-key_dir=/etc/devmachine/git-key
+# The key lives where the credential says it lives. `devmachine` copies
+# `stored_at` from here into every workspace that shares this login, so a key
+# written anywhere else would be made and then never found.
+key_dir="$HOME/.ssh"
 key_file="$key_dir/id_ed25519"
 
 # ssh-keygen refuses to overwrite an existing file without being asked, so a
@@ -11,13 +14,11 @@ if [ ! -f "$key_file" ]; then
   mkdir -p "$key_dir"
   chmod 0700 "$key_dir"
   ssh-keygen -t ed25519 -N "" -C "devmachine" -f "$key_file"
-  chmod 0600 "$key_file"
 fi
+chmod 0600 "$key_file"
 
 echo
 echo "Public key:"
 cat "$key_file.pub"
 echo
-echo "Register it once at https://github.com/settings/ssh/new as both an"
-echo "Authentication key and a Signing key, then run 'devmachine sync' to"
-echo "spread it to every workspace."
+echo "Register it at https://github.com/settings/ssh/new"
