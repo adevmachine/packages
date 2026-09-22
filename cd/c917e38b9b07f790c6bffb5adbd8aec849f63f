@@ -1,0 +1,19 @@
+packages/tailscale/package.yml
+  s_04303831b3d683::t_8cdd06ad882d26 4,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cdc917e38b9b07f790c6bffb5adbd8aec849f63f",
+  "prompts": {},
+  "sessions": {
+    "s_04303831b3d683": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8a3b31af-9ce2-4e6b-9469-825db3e5bf2e",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
