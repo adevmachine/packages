@@ -27,6 +27,16 @@ jobs:
       - name: Validate every recipe
         run: ./scripts/validate.sh
 
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # The providers ship their own Python tests. A provider whose tests
+      # only run on somebody's laptop is a provider whose tests stop running.
+      - name: Run every provider's tests
+        run: python3 -m unittest discover -s packages -p 'test_*.py' -v
+
   syntax:
     runs-on: ubuntu-latest
     steps:
