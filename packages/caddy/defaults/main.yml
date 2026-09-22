@@ -2,3 +2,7 @@
 # The address Let's Encrypt writes to about an expiring certificate. Left empty,
 # Caddy falls back to its own behaviour, which is an anonymous account.
 devmachine_caddy_email: ""
+
+# Off: a locally signed certificate is trusted by nobody, which is the wrong
+# answer for every machine the internet can reach.
+devmachine_caddy_local_certs: false

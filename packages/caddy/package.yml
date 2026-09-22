@@ -19,3 +19,10 @@ variables:
       The address the certificate authority writes to about an expiring
       certificate. Empty means an anonymous account.
     default: ""
+  local_certs:
+    summary: >-
+      Sign certificates locally instead of asking Let's Encrypt. For a machine
+      no name resolves to — a test VM, a private network — where the ACME
+      challenge can never succeed. Off, because a certificate nobody else
+      trusts is not what a public site wants.
+    default: false
