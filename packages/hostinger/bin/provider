@@ -139,7 +139,14 @@ def cmd_upsert(zone, record):
         print(json.dumps({}))
         return
 
-    put(zone, name, record_type, ttl or existing["ttl"], [value], overwrite=True)
+    # DELETE the RRset, then PUT with overwrite: false. Two calls where
+    # overwrite: true would be one — but no sentence in Hostinger's
+    # documentation says the names ABSENT from an overwrite payload survive
+    # it, and if they do not, one `dns add` empties the zone. The documented
+    # path is the one that ships until somebody has watched the other one on a
+    # zone they can afford to lose.
+    delete_rrset(zone, name, record_type)
+    put(zone, name, record_type, ttl or existing["ttl"], [value], overwrite=False)
     print(json.dumps({}))
 
 

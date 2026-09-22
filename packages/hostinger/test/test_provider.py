@@ -158,10 +158,13 @@ class ProviderTest(unittest.TestCase):
         record = {"name": "www", "type": "A", "value": "198.51.100.20", "ttl": 300}
         result = self.run_provider(["upsert", "example.com"], stdin=json.dumps(record))
         self.assertEqual(result.returncode, 0)
-        puts = [r for r in self.server.requests if r[0] == "PUT"]
-        self.assertEqual(len(puts), 1)
-        self.assertTrue(puts[0][2]["overwrite"])
-        contents = puts[0][2]["zone"][0]["records"]
+        # DELETE then PUT with overwrite: false. The one-call path needs
+        # overwrite: true, and nothing Hostinger documents says the names
+        # absent from that payload survive it.
+        writes = [r for r in self.server.requests if r[0] in ("DELETE", "PUT")]
+        self.assertEqual([w[0] for w in writes], ["DELETE", "PUT"])
+        self.assertFalse(writes[1][2]["overwrite"])
+        contents = writes[1][2]["zone"][0]["records"]
         self.assertEqual(len(contents), 1)
         self.assertEqual(contents[0]["content"], "198.51.100.20")
 
@@ -250,12 +253,6 @@ class ProviderTest(unittest.TestCase):
         puts = [r for r in self.server.requests if r[0] == "PUT"]
         self.assertEqual(len(puts), 1)
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
-class ContractTest(ProviderTest):
     def test_zones_reports_what_the_token_can_see(self):
         self.server.portfolio = [{"domain": "example.com"}, {"domain": "example.net"}]
         result = self.run_provider(["zones"])
@@ -280,3 +277,6 @@ class ContractTest(ProviderTest):
         result = self.run_provider(["list"])
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(json.loads(result.stdout)["error"]["kind"], "invalid_record")
+
+if __name__ == "__main__":
+    unittest.main()

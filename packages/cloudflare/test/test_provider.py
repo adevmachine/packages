@@ -245,12 +245,6 @@ class ProviderTest(unittest.TestCase):
         for _, _, qs, _ in gets:
             self.assertIn("per_page", qs)
 
-
-if __name__ == "__main__":
-    unittest.main()
-
-
-class ContractTest(ProviderTest):
     def test_zones_reports_every_zone_the_token_sees(self):
         self.server.zones = [{"id": "z1", "name": "example.com"}, {"id": "z2", "name": "example.net"}]
         result = self.run_provider(["zones"])
@@ -275,3 +269,6 @@ class ContractTest(ProviderTest):
         result = self.run_provider(["list"])
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(json.loads(result.stdout)["error"]["kind"], "invalid_record")
+
+if __name__ == "__main__":
+    unittest.main()
