@@ -1,0 +1,4 @@
+---
+# Off on purpose. Turning somebody's machine into an exit node routes other
+# people's traffic through it, which is not a side effect of installing a VPN.
+devmachine_tailscale_exit_node: false
