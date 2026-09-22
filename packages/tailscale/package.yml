@@ -1,6 +1,7 @@
 format: 1
 name: tailscale
 scope: machine
+kind: vpn
 summary: Joins the machine to a tailnet, so it is reachable without a public address.
 
 requires:
@@ -14,15 +15,9 @@ variables:
     default: false
 
 credentials:
-  # `shareable` answers a narrower question than it sounds like: whether a
-  # copy of `stored_at` works on another Linux account on THIS machine — not
-  # whether it works on another machine, which it never does (a tailnet state
-  # identifies one machine, so copying it elsewhere does nothing useful). This
-  # credential never reaches a workspace account at all: it lives outside
-  # every home directory and only tailscaled on this one machine reads it.
   - name: tailscale
     kind: manual
     scope: machine
-    shareable: true
+    shareable: false
     command: tailscale up
     stored_at: /var/lib/tailscale/tailscaled.state
