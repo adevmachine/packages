@@ -1,0 +1,47 @@
+---
+# The CLI copies the private key into this workspace after every workspace
+# package's own tasks have run (the account has to exist before a credential
+# lands in it), so on the first sync the key is not here yet. The tasks below
+# skip themselves when that is the case and pick the work up on the next sync,
+# once the copy has landed.
+- name: Look for the machine's key in this workspace
+  ansible.builtin.stat:
+    path: "{{ devmachine_git_key_home }}/.ssh/id_ed25519"
+  register: devmachine_git_key_private
+  check_mode: false
+
+- name: Derive the public half beside it
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  ansible.builtin.shell:
+    cmd: >-
+      ssh-keygen -y -f {{ devmachine_git_key_home }}/.ssh/id_ed25519
+      > {{ devmachine_git_key_home }}/.ssh/id_ed25519.pub
+    creates: "{{ devmachine_git_key_home }}/.ssh/id_ed25519.pub"
+  when: devmachine_git_key_private.stat.exists
+
+- name: Keep the public key readable
+  ansible.builtin.file:
+    path: "{{ devmachine_git_key_home }}/.ssh/id_ed25519.pub"
+    owner: "{{ devmachine_workspace.user }}"
+    group: "{{ devmachine_workspace.user }}"
+    mode: "0644"
+  when: devmachine_git_key_private.stat.exists
+
+- name: Sign this workspace's commits with the machine's key
+  become: true
+  become_user: "{{ devmachine_workspace.user }}"
+  environment:
+    HOME: "{{ devmachine_git_key_home }}"
+  community.general.git_config:
+    name: "{{ devmachine_git_key_setting.name }}"
+    value: "{{ devmachine_git_key_setting.value }}"
+    scope: global
+  loop:
+    - {name: gpg.format, value: "ssh"}
+    - {name: user.signingkey, value: "{{ devmachine_git_key_home }}/.ssh/id_ed25519.pub"}
+    - {name: commit.gpgsign, value: "true"}
+  loop_control:
+    loop_var: devmachine_git_key_setting
+    label: "{{ devmachine_git_key_setting.name }}"
+  when: devmachine_git_key_private.stat.exists

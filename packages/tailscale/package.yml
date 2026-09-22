@@ -1,0 +1,23 @@
+format: 1
+name: tailscale
+scope: machine
+kind: vpn
+summary: Joins the machine to a tailnet, so it is reachable without a public address.
+
+requires:
+  cli: ">= 0.5.0"
+
+needs: [base]
+
+variables:
+  exit_node:
+    summary: Advertise this machine as an exit node. Off unless asked for.
+    default: false
+
+credentials:
+  - name: tailscale
+    kind: manual
+    scope: machine
+    shareable: false
+    command: tailscale up
+    stored_at: /var/lib/tailscale/tailscaled.state

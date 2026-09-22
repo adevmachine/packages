@@ -1,0 +1,2 @@
+---
+devmachine_git_key_home: "/home/{{ devmachine_workspace.user }}"

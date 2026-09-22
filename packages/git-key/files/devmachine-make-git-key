@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+key_dir=/etc/devmachine/git-key
+key_file="$key_dir/id_ed25519"
+
+# ssh-keygen refuses to overwrite an existing file without being asked, so a
+# second run here is already a no-op on that front — the mkdir and chmod below
+# are what make the whole script safe to run twice.
+if [ ! -f "$key_file" ]; then
+  mkdir -p "$key_dir"
+  chmod 0700 "$key_dir"
+  ssh-keygen -t ed25519 -N "" -C "devmachine" -f "$key_file"
+  chmod 0600 "$key_file"
+fi
+
+echo
+echo "Public key:"
+cat "$key_file.pub"
+echo
+echo "Register it once at https://github.com/settings/ssh/new as both an"
+echo "Authentication key and a Signing key, then run 'devmachine sync' to"
+echo "spread it to every workspace."

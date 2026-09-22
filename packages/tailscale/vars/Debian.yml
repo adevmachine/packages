@@ -1,0 +1,19 @@
+---
+devmachine_package_cache_command: apt-get update
+
+devmachine_tailscale_keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+devmachine_tailscale_repo_file: /etc/apt/sources.list.d/tailscale.list
+
+# Tailscale publishes one tree per distribution and release name, so Debian
+# and Ubuntu do not share a path, and neither do two Ubuntu releases.
+devmachine_tailscale_repo_distro: "{{ ansible_facts['distribution'] | lower }}"
+devmachine_tailscale_repo_codename: "{{ ansible_facts['distribution_release'] }}"
+
+devmachine_tailscale_key_url: >-
+  https://pkgs.tailscale.com/stable/{{ devmachine_tailscale_repo_distro }}/{{
+  devmachine_tailscale_repo_codename }}.noarmor.gpg
+
+devmachine_tailscale_repo_line: >-
+  deb [signed-by={{ devmachine_tailscale_keyring }}]
+  https://pkgs.tailscale.com/stable/{{ devmachine_tailscale_repo_distro }}
+  {{ devmachine_tailscale_repo_codename }} main
