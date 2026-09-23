@@ -1,0 +1,4 @@
+---
+# Empty keeps compatibility with broad tokens that can discover the Domains
+# portfolio. A least-privilege DNS token names its zones in the configuration.
+devmachine_hostinger_zones: []

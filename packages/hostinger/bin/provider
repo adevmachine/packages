@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 
 DEFAULT_BASE = "https://developers.hostinger.com"
+DEFAULT_ZONES_FILE = "/etc/devmachine/hostinger/zones.json"
 
 # Types whose content cannot round-trip through a single Value string: MX and
 # SRV carry structured data (a priority) that Hostinger folds into "content"
@@ -28,6 +29,20 @@ def token():
     if not value:
         fail("unauthenticated", "HOSTINGER_API_TOKEN is not set")
     return value
+
+
+def configured_zones():
+    path = os.environ.get("DEVMACHINE_HOSTINGER_ZONES_FILE", DEFAULT_ZONES_FILE)
+    try:
+        with open(path, encoding="utf-8") as source:
+            zones = json.load(source)
+    except FileNotFoundError:
+        return []
+    except (OSError, json.JSONDecodeError) as error:
+        fail("invalid_record", "cannot read configured Hostinger zones: %s" % error)
+    if not isinstance(zones, list) or any(not isinstance(zone, str) or not zone for zone in zones):
+        fail("invalid_record", "configured Hostinger zones must be a list of domain names")
+    return zones
 
 
 def call(method, path, body=None):
@@ -189,6 +204,11 @@ def cmd_delete(zone, record):
 
 
 def cmd_zones():
+    names = configured_zones()
+    if names:
+        print(json.dumps({"zones": names}))
+        return
+
     # The DNS API answers about one zone at a time, so what a token can see
     # comes from the account's domains rather than from the DNS endpoints.
     portfolio = call("GET", "/api/domains/v1/portfolio")

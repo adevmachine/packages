@@ -3,3 +3,19 @@
   package:
     name: python3
     state: present
+
+- name: Make sure the provider configuration directory exists
+  file:
+    path: /etc/devmachine/hostinger
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Record the zones available to the provider
+  copy:
+    content: "{{ devmachine_hostinger_zones | to_json }}\n"
+    dest: /etc/devmachine/hostinger/zones.json
+    owner: root
+    group: root
+    mode: "0600"

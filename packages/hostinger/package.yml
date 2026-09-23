@@ -12,3 +12,11 @@ credentials:
     env: HOSTINGER_API_TOKEN
 requires:
   cli: ">= 0.4.0"
+
+variables:
+  zones:
+    summary: >-
+      DNS zones this provider may manage. Set this when the token has DNS
+      permission without Domains portfolio permission; an empty list asks the
+      account portfolio instead.
+    default: []

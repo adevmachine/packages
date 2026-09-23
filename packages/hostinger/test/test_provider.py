@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -94,11 +95,13 @@ class ProviderTest(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.thread.join()
+        self.server.server_close()
 
-    def run_provider(self, args, stdin=""):
+    def run_provider(self, args, stdin="", extra_env=None):
         env = dict(os.environ)
         env["HOSTINGER_API_TOKEN"] = "hpat_test_token"
         env["DEVMACHINE_DNS_BASE"] = self.base_url
+        env.update(extra_env or {})
         result = subprocess.run(
             [sys.executable, PROVIDER] + args,
             input=stdin,
@@ -258,6 +261,18 @@ class ProviderTest(unittest.TestCase):
         result = self.run_provider(["zones"])
         self.assertEqual(result.returncode, 0)
         self.assertEqual(json.loads(result.stdout), {"zones": ["example.com", "example.net"]})
+
+    def test_zones_uses_the_configured_list_without_portfolio_permission(self):
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as zones:
+            json.dump(["example.com", "example.net"], zones)
+            zones.flush()
+            result = self.run_provider(
+                ["zones"], extra_env={"DEVMACHINE_HOSTINGER_ZONES_FILE": zones.name}
+            )
+
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(json.loads(result.stdout), {"zones": ["example.com", "example.net"]})
+        self.assertEqual(self.server.requests, [])
 
     def test_zones_takes_no_zone(self):
         # `zones` is how the CLI finds out which registrar holds a name, so
