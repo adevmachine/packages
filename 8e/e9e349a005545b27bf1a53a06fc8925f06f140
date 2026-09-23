@@ -1,0 +1,22 @@
+packages/hostinger/bin/provider
+  h_0e71f0b33c1b87 10,34-47,207-211
+packages/hostinger/defaults/main.yml
+  h_0e71f0b33c1b87 1-4
+packages/hostinger/package.yml
+  h_0e71f0b33c1b87 15-22
+packages/hostinger/tasks/main.yml
+  h_0e71f0b33c1b87 6-21
+packages/hostinger/test/test_provider.py
+  h_0e71f0b33c1b87 5,98,100,104,265-276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8ee9e349a005545b27bf1a53a06fc8925f06f140",
+  "prompts": {},
+  "humans": {
+    "h_0e71f0b33c1b87": {
+      "author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
