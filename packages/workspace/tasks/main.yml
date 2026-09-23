@@ -28,6 +28,29 @@
     name: "{{ devmachine_workspace_packages }}"
     state: present
 
+- name: Install the workspace account creator
+  ansible.builtin.copy:
+    src: devmachine-create-workspace
+    dest: /usr/local/sbin/devmachine-create-workspace
+    owner: root
+    group: root
+    mode: "0755"
+
+# Docker Engine uses the host daemon and the docker group. These accounts do
+# not run rootless containers, so allocating a 65,536-ID subordinate range to
+# every workspace buys nothing. More importantly, VM images may reserve the
+# remaining subordinate-ID space for their bootstrap account, causing useradd
+# to fail after only a handful of workspaces.
+- name: Create the account without an unused subordinate ID range
+  ansible.builtin.command:
+    argv:
+      - /usr/local/sbin/devmachine-create-workspace
+      - "{{ devmachine_workspace.user }}"
+      - "{{ devmachine_workspace_home }}"
+  register: devmachine_workspace_created
+  changed_when: "'created' in devmachine_workspace_created.stdout_lines"
+  when: not ansible_check_mode
+
 - name: Create the account
   ansible.builtin.user:
     name: "{{ devmachine_workspace.user }}"

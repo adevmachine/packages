@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -ne 2 ]; then
+  echo "usage: devmachine-create-workspace <account> <home>" >&2
+  exit 2
+fi
+
+account=$1
+home=$2
+getent_command=${DEVMACHINE_GETENT:-getent}
+useradd_command=${DEVMACHINE_USERADD:-useradd}
+
+if "$getent_command" passwd "$account" >/dev/null 2>&1; then
+  exit 0
+fi
+
+"$useradd_command" \
+  -K SUB_UID_COUNT=0 \
+  -K SUB_GID_COUNT=0 \
+  --create-home \
+  --home-dir "$home" \
+  "$account"
+
+echo created

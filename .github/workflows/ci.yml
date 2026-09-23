@@ -50,6 +50,9 @@ jobs:
       - name: Check every recipe parses as a role
         run: ./scripts/syntax-check.sh
 
+      - name: Check workspace account creation
+        run: ./scripts/test-workspace-account.sh
+
   data:
     runs-on: ubuntu-latest
     steps:
