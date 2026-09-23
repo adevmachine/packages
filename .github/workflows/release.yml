@@ -4,6 +4,10 @@ on:
   push:
     tags: ["v*"]
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -29,3 +33,16 @@ jobs:
           files: |
             packages-${{ github.ref_name }}.tar.gz
             checksums.txt
+
+      - name: Verify the published assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir /tmp/release-check
+          gh release download "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "packages-${GITHUB_REF_NAME}.tar.gz" \
+            --pattern checksums.txt \
+            --dir /tmp/release-check
+          cd /tmp/release-check
+          sha256sum --check checksums.txt
