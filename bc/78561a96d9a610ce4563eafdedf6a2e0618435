@@ -1,0 +1,21 @@
+packages/workspace/files/devmachine-create-workspace
+  s_3c1e24ba9f2fdc::t_b58bb245350d68 1-25
+scripts/test-workspace-account.sh
+  s_3c1e24ba9f2fdc::t_1a8a486987949b 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bc78561a96d9a610ce4563eafdedf6a2e0618435",
+  "prompts": {},
+  "sessions": {
+    "s_3c1e24ba9f2fdc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a0c9d6-7e1f-7860-966a-4959d525c844",
+        "model": "unknown"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
