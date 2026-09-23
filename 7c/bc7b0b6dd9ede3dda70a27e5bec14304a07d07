@@ -1,0 +1,14 @@
+.github/workflows/release.yml
+  h_0e71f0b33c1b87 7-10,36-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7cbc7b0b6dd9ede3dda70a27e5bec14304a07d07",
+  "prompts": {},
+  "humans": {
+    "h_0e71f0b33c1b87": {
+      "author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
