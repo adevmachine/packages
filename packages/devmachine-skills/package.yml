@@ -1,0 +1,8 @@
+format: 1
+name: devmachine-skills
+scope: workspace
+summary: Agent skills for operating Devmachine.
+requires:
+  cli: ">= 0.7.0"
+skills:
+  path: skills

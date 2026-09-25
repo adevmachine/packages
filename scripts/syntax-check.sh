@@ -20,3 +20,34 @@ trap 'rm -f "$playbook"' EXIT
 } > "$playbook"
 
 ANSIBLE_ROLES_PATH=packages ansible-playbook --syntax-check "$playbook"
+
+for manifest in packages/*/package.yml; do
+  skill_path="$({
+    awk '
+      /^skills:[[:space:]]*$/ { in_skills = 1; next }
+      in_skills && /^  path:[[:space:]]+/ { print $2; exit }
+      in_skills && /^[^[:space:]]/ { exit }
+    ' "$manifest"
+  } || true)"
+  [ -n "$skill_path" ] || continue
+  skill_path="${skill_path#\"}"
+  skill_path="${skill_path%\"}"
+  root="$(dirname "$manifest")/$skill_path"
+  if [ ! -d "$root" ]; then
+    echo "$manifest: skills.path $skill_path is not a directory" >&2
+    exit 1
+  fi
+  found=false
+  for skill in "$root"/*/; do
+    [ -d "$skill" ] || continue
+    found=true
+    if [ ! -f "${skill}SKILL.md" ]; then
+      echo "${skill}SKILL.md is missing" >&2
+      exit 1
+    fi
+  done
+  if [ "$found" = false ]; then
+    echo "$manifest: skills.path $skill_path contains no skills" >&2
+    exit 1
+  fi
+done

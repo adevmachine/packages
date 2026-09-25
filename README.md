@@ -13,6 +13,7 @@ An Ansible role, with one extra file beside it:
 packages/<name>/
   package.yml        what this is, what it needs, what it offers
   tasks/main.yml     required
+  skills/*/SKILL.md  optional Agent Skills contributed by this package
   defaults/, vars/, files/, templates/, handlers/
 ```
 
@@ -31,6 +32,7 @@ never seen.
 | `firewall` | machine | ufw, with SSH open and HTTP optional. |
 | `fail2ban` | machine | fail2ban, with a jail for sshd. |
 | `ssh_hardening` | machine | Password authentication off, for good. |
+| `devmachine-skills` | workspace | Teaches supported agents to operate Devmachine and create packages. |
 
 ## A pin is a tag, never a branch
 
