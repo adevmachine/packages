@@ -1,0 +1,24 @@
+README.md
+  h_0e71f0b33c1b87 16,35
+packages/devmachine-skills/package.yml
+  h_0e71f0b33c1b87 1-8
+packages/devmachine-skills/skills/create-devmachine-package/SKILL.md
+  h_0e71f0b33c1b87 1-56
+packages/devmachine-skills/skills/use-devmachine/SKILL.md
+  h_0e71f0b33c1b87 1-61
+packages/devmachine-skills/tasks/main.yml
+  h_0e71f0b33c1b87 1-2
+scripts/syntax-check.sh
+  h_0e71f0b33c1b87 23-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fe7f6b947924ea8322082dde2b996d2b43200077",
+  "prompts": {},
+  "humans": {
+    "h_0e71f0b33c1b87": {
+      "author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
