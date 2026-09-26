@@ -1,0 +1,6 @@
+---
+devmachine_mac_mise_bin: "{{ ansible_facts['env']['HOME'] }}/.local/bin/mise"
+
+# Empty on purpose. The operator's own list arrives through settings; this
+# package never installs a tool on its own.
+devmachine_mac_mise_tools: []

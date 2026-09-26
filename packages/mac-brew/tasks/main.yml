@@ -1,0 +1,66 @@
+---
+- name: Refuse a machine that is not macOS
+  ansible.builtin.fail:
+    msg: "mac-brew only runs on macOS, this machine reports {{ ansible_facts['system'] }}."
+  when: ansible_facts['system'] != 'Darwin'
+
+- name: Look for Homebrew
+  ansible.builtin.stat:
+    path: "{{ devmachine_mac_brew_prefix }}/bin/brew"
+  register: devmachine_mac_brew_bin
+
+- name: Refuse a machine without Homebrew
+  ansible.builtin.fail:
+    msg: >-
+      Homebrew is not installed at {{ devmachine_mac_brew_prefix }}. Install it
+      from https://brew.sh, then run `devmachine setup` for this machine.
+  when: not devmachine_mac_brew_bin.stat.exists
+
+# Taps come before formulae and casks: without them a cask from an own tap
+# fails with "No available cask with the name ..." on a clean Mac.
+- name: Add the taps
+  community.general.homebrew_tap:
+    name: "{{ devmachine_mac_brew_taps }}"
+    state: present
+    path: "{{ devmachine_mac_brew_prefix }}/bin"
+  when: devmachine_mac_brew_taps | length > 0
+
+- name: Install the formulae
+  community.general.homebrew:
+    name: "{{ devmachine_mac_brew_formulae }}"
+    state: present
+    path: "{{ devmachine_mac_brew_prefix }}/bin"
+  when: devmachine_mac_brew_formulae | length > 0
+
+- name: Read the trust file
+  ansible.builtin.slurp:
+    path: "{{ ansible_facts['env']['HOME'] }}/.homebrew/trust.json"
+  register: devmachine_mac_brew_trust_file
+  failed_when: false
+  changed_when: false
+
+- name: Decode the trust file
+  ansible.builtin.set_fact:
+    devmachine_mac_brew_trusted_casks_known: >-
+      {{ (devmachine_mac_brew_trust_file.content | default('e30=') | b64decode | from_json).trustedcasks | default([]) }}
+    devmachine_mac_brew_trusted_formulae_known: >-
+      {{ (devmachine_mac_brew_trust_file.content | default('e30=') | b64decode | from_json).trustedformulae | default([]) }}
+
+# Trust comes before the casks: a clean Mac fails with "Refusing to load cask
+# ... from untrusted tap" even with the tap already added.
+- name: Trust the casks
+  ansible.builtin.command: "{{ devmachine_mac_brew_prefix }}/bin/brew trust --cask {{ item }}"
+  loop: "{{ devmachine_mac_brew_trusted_casks }}"
+  when: item not in devmachine_mac_brew_trusted_casks_known
+
+- name: Trust the formulae
+  ansible.builtin.command: "{{ devmachine_mac_brew_prefix }}/bin/brew trust --formula {{ item }}"
+  loop: "{{ devmachine_mac_brew_trusted_formulae }}"
+  when: item not in devmachine_mac_brew_trusted_formulae_known
+
+- name: Install the casks
+  community.general.homebrew_cask:
+    name: "{{ devmachine_mac_brew_casks }}"
+    state: present
+    path: "{{ devmachine_mac_brew_prefix }}/bin"
+  when: devmachine_mac_brew_casks | length > 0

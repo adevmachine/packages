@@ -1,0 +1,16 @@
+format: 1
+name: mac-mise
+scope: machine
+summary: Installs mise's global tools from a list.
+
+requires:
+  cli: ">= 0.7.0"
+
+variables:
+  bin:
+    summary: Where the mise binary is.
+    default: ~/.local/bin/mise
+  tools:
+    summary: >-
+      Tools to install globally, as `mise use -g` takes them, e.g. `node@lts`.
+    default: []

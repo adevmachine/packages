@@ -1,0 +1,35 @@
+format: 1
+name: mac-brew
+scope: machine
+summary: >-
+  Installs Homebrew taps, formulae and casks from lists. Never removes
+  anything.
+
+requires:
+  cli: ">= 0.7.0"
+
+variables:
+  prefix:
+    summary: >-
+      Where Homebrew lives. /usr/local on an Intel Mac.
+    default: /opt/homebrew
+  taps:
+    summary: Homebrew taps to add.
+    default: []
+  formulae:
+    summary: Homebrew formulae to install.
+    default: []
+  casks:
+    summary: Homebrew casks to install.
+    default: []
+  trusted_casks:
+    summary: >-
+      Casks to trust, as full names `<tap>/<cask>`. Recent Homebrew refuses to
+      load a cask from an unofficial tap until it is trusted, per item on
+      purpose rather than per tap.
+    default: []
+  trusted_formulae:
+    summary: >-
+      Formulae to trust, as full names `<tap>/<formula>`, for the same reason
+      as trusted_casks.
+    default: []

@@ -1,0 +1,10 @@
+---
+devmachine_mac_brew_prefix: /opt/homebrew
+
+# Empty on purpose. The operator's own lists arrive through settings; this
+# package never taps, installs or casks anything on its own.
+devmachine_mac_brew_taps: []
+devmachine_mac_brew_formulae: []
+devmachine_mac_brew_casks: []
+devmachine_mac_brew_trusted_casks: []
+devmachine_mac_brew_trusted_formulae: []

@@ -1,0 +1,43 @@
+---
+- name: Refuse a machine that is not macOS
+  ansible.builtin.fail:
+    msg: "mac-mise only runs on macOS, this machine reports {{ ansible_facts['system'] }}."
+  when: ansible_facts['system'] != 'Darwin'
+
+- name: Look for mise
+  ansible.builtin.stat:
+    path: "{{ devmachine_mac_mise_bin }}"
+  register: devmachine_mac_mise_bin_stat
+
+- name: Refuse a machine without mise
+  ansible.builtin.fail:
+    msg: >-
+      mise is not installed at {{ devmachine_mac_mise_bin }}. Install it from
+      https://mise.jdx.dev, then run `devmachine setup` for this machine.
+  when: not devmachine_mac_mise_bin_stat.stat.exists
+
+- name: Read the mise config before
+  ansible.builtin.slurp:
+    path: "{{ ansible_facts['env']['HOME'] }}/.config/mise/config.toml"
+  register: devmachine_mac_mise_config_before
+  failed_when: false
+  changed_when: false
+  when: devmachine_mac_mise_tools | length > 0
+
+# `mise use -g` rewrites the file every time, so its exit code says nothing
+# about change.
+- name: Install the global tools
+  ansible.builtin.command: "{{ devmachine_mac_mise_bin }} use -g {{ item }}"
+  loop: "{{ devmachine_mac_mise_tools }}"
+  changed_when: false
+  when: devmachine_mac_mise_tools | length > 0
+
+- name: Read the mise config after
+  ansible.builtin.slurp:
+    path: "{{ ansible_facts['env']['HOME'] }}/.config/mise/config.toml"
+  register: devmachine_mac_mise_config_after
+  failed_when: false
+  changed_when: >-
+    devmachine_mac_mise_config_after.content | default('') !=
+    devmachine_mac_mise_config_before.content | default('')
+  when: devmachine_mac_mise_tools | length > 0

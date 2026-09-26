@@ -32,6 +32,8 @@ never seen.
 | `firewall` | machine | ufw, with SSH open and HTTP optional. |
 | `fail2ban` | machine | fail2ban, with a jail for sshd. |
 | `ssh_hardening` | machine | Password authentication off, for good. |
+| `mac-brew` | machine | Installs Homebrew taps, formulae and casks from lists. |
+| `mac-mise` | machine | Installs mise's global tools from a list. |
 | `devmachine-skills` | workspace | Teaches supported agents to operate Devmachine and create packages. |
 
 ## A pin is a tag, never a branch
