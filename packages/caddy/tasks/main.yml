@@ -43,6 +43,24 @@
     group: root
     mode: "0755"
 
+- name: Create the one-page site's directory
+  ansible.builtin.file:
+    path: /var/www/devmachine
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: devmachine_caddy_site | bool
+
+- name: Write the one-page site
+  ansible.builtin.copy:
+    src: index.html
+    dest: /var/www/devmachine/index.html
+    owner: root
+    group: root
+    mode: "0644"
+  when: devmachine_caddy_site | bool
+
 - name: Write the Caddyfile
   ansible.builtin.template:
     src: Caddyfile.j2

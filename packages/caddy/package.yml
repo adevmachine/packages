@@ -2,8 +2,9 @@ format: 1
 name: caddy
 scope: machine
 summary: >-
-  A reverse proxy that gets its own certificates. It serves nothing by itself:
-  every site is a file another package drops into /etc/caddy/sites.d.
+  A reverse proxy that gets its own certificates, and a one-page site that
+  answers 200 to prove the machine is reachable. Every other site is a file
+  another package drops into /etc/caddy/sites.d.
 
 needs: [firewall]
 
@@ -26,3 +27,16 @@ variables:
       challenge can never succeed. Off, because a certificate nobody else
       trusts is not what a public site wants.
     default: false
+  site:
+    summary: >-
+      Serve a one-page site straight from Caddy, no container behind it. It
+      answers 200, which proves the name, the certificate and the proxy in one
+      request. Off leaves the machine serving only what other packages add.
+    default: true
+  site_domain:
+    summary: >-
+      The name the one-page site answers to, with its own certificate. Empty
+      serves it on port 80 at the machine's address, over plain HTTP, because
+      no public authority signs a certificate for a bare address. It creates
+      no DNS record: pointing the name is `devmachine dns add`.
+    default: ""

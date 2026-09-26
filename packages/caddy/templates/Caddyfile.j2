@@ -13,3 +13,10 @@
 
 {% endif %}
 import /etc/caddy/sites.d/*.caddy
+{% if devmachine_caddy_site | bool %}
+
+{{ devmachine_caddy_site_domain if devmachine_caddy_site_domain | length > 0 else ':80' }} {
+	root * /var/www/devmachine
+	file_server
+}
+{% endif %}
