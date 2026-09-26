@@ -1,0 +1,27 @@
+packages/caddy/defaults/main.yml
+  s_a0cbf6c120c4f8::t_f4c3c68d464991 9-15
+packages/caddy/files/index.html
+  s_a0cbf6c120c4f8::t_405a1eb04bb059 1-24
+packages/caddy/package.yml
+  s_a0cbf6c120c4f8::t_d90a783dd8e4fa 5-7,30-42
+packages/caddy/tasks/main.yml
+  s_a0cbf6c120c4f8::t_4b7fbebb5364f5 46-63
+packages/caddy/templates/Caddyfile.j2
+  s_a0cbf6c120c4f8::t_78eddfb05a1d7d 16-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "49e905437f2d3301182ec60c2ad84a9dcbe986c8",
+  "prompts": {},
+  "sessions": {
+    "s_a0cbf6c120c4f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7d54e1b-857f-44e4-a7a9-0ca76ea55bb2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Djalma Araujo <djalma@nossomos.cc>"
+    }
+  }
+}
